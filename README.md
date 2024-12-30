@@ -2,8 +2,8 @@
 ## 介绍
 **Crabc** 是低代码接口开发平台，企业数据服务平台，深度整合SpringBoot和Mybatis实现动态数据源和动态SQL。
 支持接入（mysql、oracle、postgresql、sqlserver、达梦、TiDB、es和mongodb）等SQL或/NoSQL数据源，
-在线可视化编写SQL后即可快速生成接口对外提供服务，减少通用接口的SQL编写，让开发人员专注更复杂的业务逻辑实现。
-支持Mybatis中if等标签语法、数据脱敏、数据转换等功能，集成微服务网关支持接口代理转发、权限认证、限流、缓存、告警监控等一站式API数据服务。
+在线可视化编写SQL后即可快速生成接口对外提供服务，接口一键上下线。减少通用接口的SQL编写，让开发人员专注更复杂的业务逻辑实现。
+支持Mybatis中if等标签语法、数据脱敏、数据转换等功能，集成微服务网关支持接入第三方接口、权限认证、限流、缓存、告警监控和统一日志等一站式API数据服务。
 
 ![img.png](doc/home.png)
 ## 功能
@@ -28,7 +28,7 @@ cn.crabc
 ~~~ 
 
 ## 版本说明
-dev分支框架SpringBoot已升级至3.x，jdk需17及以上版本 \
+dev分支框架SpringBoot已升级至3.4，jdk需17及以上版本 \
 2.x分支框架SpringBoot还是2.x
 
 ## 运行启动
@@ -58,7 +58,7 @@ gitee: https://gitee.com/linebyte/crabc
 <dependency>
     <groupId>cn.crabc</groupId>
     <artifactId>crabc-spring-boot-starter</artifactId>
-    <version>3.2.2</version>
+    <version>3.3.0</version>
 </dependency>
 ```
 在程序启动类中添加下面注解
