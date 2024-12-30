@@ -23,6 +23,7 @@ public class BaseDataServiceImpl implements IBaseDataService {
 
     @Autowired
     private DataSourceManager dataSourceManager;
+
     @Override
     public String testConnection(BaseDataSource dataSource) {
         return dataSourceManager.test(dataSource);
@@ -40,21 +41,17 @@ public class BaseDataServiceImpl implements IBaseDataService {
         Object result = this.execute(datasourceId, datasourceType, schema, sql, params);
         PreviewVO preview = new PreviewVO();
         if (result instanceof List) {
-            List<Map<String, Object>> list = (List<Map<String, Object>>)result;
+            List<Map<String, Object>> list = (List<Map<String, Object>>) result;
             if (!list.isEmpty()) {
                 preview.setData(list);
-                Set<String> fieldName = list.get(0).keySet();
-                preview.setMetadata(fieldName);
+                preview.setMetadata(list.get(0).keySet());
             }
-        }else{
-            Set<String> fieldName = new HashSet<>();
-            List<Map<String, Object>> list = new ArrayList<>();
+        } else {
             Map<String, Object> data = new HashMap<>();
-            data.put("执行结果", "执行成功，影响条数："+result);
-            list.add(data);
+            data.put("执行结果", String.format("执行成功，影响条数：%s", result));
+            List<Map<String, Object>> list = Collections.singletonList(data);
             preview.setData(list);
-            fieldName.add("执行结果");
-            preview.setMetadata(fieldName);
+            preview.setMetadata(Collections.singleton("执行结果"));
         }
         return preview;
     }
@@ -62,25 +59,28 @@ public class BaseDataServiceImpl implements IBaseDataService {
     @Override
     public Object execute(String datasourceId, String datasourceType, String schema, String sql, Map<String, Object> params) {
         StatementMapper statementMapper = dataSourceManager.getStatementMapper(datasourceId);
-        // 数据源类型
+        
         if (datasourceType != null && !params.containsKey(BaseConstant.DATA_SOURCE_TYPE)) {
             params.put(BaseConstant.DATA_SOURCE_TYPE, datasourceType);
         }
-        String sqlType = SQLUtil.getOperateType(sql);
-        if ("insert".equalsIgnoreCase(sqlType)) {
-            return statementMapper.insert(datasourceId, schema, sql, params);
-        }else if("update".equalsIgnoreCase(sqlType)){
-            return statementMapper.update(datasourceId, schema, sql, params);
-        }else if("delete".equalsIgnoreCase(sqlType)){
-            return statementMapper.delete(datasourceId, schema, sql, params);
-        } else {
-            Object pageNum = params.get(BaseConstant.PAGE_NUM);
-            Object pageSize = params.get(BaseConstant.PAGE_SIZE);
-            if (pageNum != null && pageSize != null) {
-                return statementMapper.selectPage(datasourceId, schema, sql, params, Integer.parseInt(pageNum.toString()), Integer.parseInt(pageSize.toString()));
-            } else {
+
+        String sqlType = SQLUtil.getOperateType(sql).toLowerCase();
+        switch (sqlType) {
+            case "insert":
+                return statementMapper.insert(datasourceId, schema, sql, params);
+            case "update":
+                return statementMapper.update(datasourceId, schema, sql, params);
+            case "delete":
+                return statementMapper.delete(datasourceId, schema, sql, params);
+            default:
+                Object pageNum = params.get(BaseConstant.PAGE_NUM);
+                Object pageSize = params.get(BaseConstant.PAGE_SIZE);
+                if (pageNum != null && pageSize != null) {
+                    return statementMapper.selectPage(datasourceId, schema, sql, params,
+                            Integer.parseInt(pageNum.toString()),
+                            Integer.parseInt(pageSize.toString()));
+                }
                 return statementMapper.selectList(datasourceId, schema, sql, params);
-            }
         }
     }
 }

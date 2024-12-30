@@ -52,72 +52,100 @@ public class ApiTestController {
      */
     @PostMapping("/verify/{apiId}")
     public Result testApiSql(@PathVariable Long apiId, @RequestBody ApiTestParam params) throws Exception {
+        // 参数校验
         if (params.getDatasourceId() == null) {
             return Result.error(ErrorStatusEnum.PARAM_NOT_FOUNT.getCode(), ErrorStatusEnum.PARAM_NOT_FOUNT.getMassage());
         }
-        if (params.getDatasourceType() == null) {
-            params.setDatasourceType("mysql");
-        }
-        Map<String, Object> paramsMap = new HashMap<>();
-        Map<String, Object> resultMap = new HashMap<>();
+        
+        // 设置默认数据源类型
+        params.setDatasourceType(params.getDatasourceType() == null ? "mysql" : params.getDatasourceType());
+
         try {
-            // body, 不支持数组对象
-            if (params.getBodyData() != null && params.getBodyData().startsWith("{")) {
-                paramsMap = objectMapper.readValue(params.getBodyData(), HashMap.class);
-            }
-            // querya参数
-            Object requestParams = params.getRequestParams();
-            if (requestParams instanceof Map) {
-                Map<String, Object> queryParam = (Map<String, Object>) requestParams;
-                // 校验参数
-                if (!splitAarry(queryParam)) {
-                    return Result.error(ErrorStatusEnum.PARAM_NOT_FOUNT.getCode(), ErrorStatusEnum.PARAM_NOT_FOUNT.getMassage());
-                }
-                paramsMap.putAll(queryParam);
-            }else if (requestParams instanceof List) {
-                List<Map<String,Object>> paramsList = (List<Map<String, Object>>) requestParams;
-                for (Map<String, Object> entry : paramsList) {
-                    // 校验参数
-                    if (!splitAarry(entry)) {
-                        return Result.error(ErrorStatusEnum.PARAM_NOT_FOUNT.getCode(), ErrorStatusEnum.PARAM_NOT_FOUNT.getMassage());
-                    }
-                    paramsMap.put(entry.get("name").toString(), entry.get("value"));
-                }
-            }
-            String sql = params.getSqlScript();
-            Object data = baseDataService.execute(params.getDatasourceId(),params.getDatasourceType(), params.getSchemaName(),sql, paramsMap);
-            if (ResultTypeEnum.ONE.getName().equals(params.getResultType()) && data instanceof List) {
-                List<Object> list  = (List<Object>) data;
-                resultMap.put("data", objectMapper.writeValueAsString(Result.success(list.isEmpty() ? null: list.get(0))));
-            }else{
-                resultMap.put("data", objectMapper.writeValueAsString(Result.success(data)));
-            }
+            // 构建参数Map
+            Map<String, Object> paramsMap = buildParamsMap(params);
+            
+            // 执行SQL
+            Object data = baseDataService.execute(
+                params.getDatasourceId(),
+                params.getDatasourceType(), 
+                params.getSchemaName(),
+                params.getSqlScript(), 
+                paramsMap
+            );
+
+            // 处理返回结果
+            Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("code", 0);
-        }catch (Exception e) {
+            resultMap.put("data", formatResultData(data, params.getResultType()));
+            
+            return Result.success(resultMap);
+            
+        } catch (Exception e) {
             return Result.error("测试异常，请检查参数或者SQL是否正常！");
         }
-        return Result.success(resultMap);
     }
 
     /**
-     * 校验参数
-     *
-     * @param queryParam
-     * @return
+     * 构建参数Map
      */
-    public boolean splitAarry(Map<String, Object> queryParam) {
-        if (queryParam == null ||queryParam.isEmpty()) {
+    private Map<String, Object> buildParamsMap(ApiTestParam params) throws Exception {
+        Map<String, Object> paramsMap = new HashMap<>();
+        
+        // 处理body参数
+        if (params.getBodyData() != null && params.getBodyData().startsWith("{")) {
+            paramsMap = objectMapper.readValue(params.getBodyData(), HashMap.class);
+        }
+
+        // 处理query参数
+        Object requestParams = params.getRequestParams();
+        if (requestParams instanceof Map) {
+            Map<String, Object> queryParam = (Map<String, Object>) requestParams;
+            if (validateParams(queryParam)) {
+                paramsMap.putAll(queryParam);
+            } else {
+                throw new IllegalArgumentException("参数校验失败");
+            }
+        } else if (requestParams instanceof List) {
+            List<Map<String,Object>> paramsList = (List<Map<String, Object>>) requestParams;
+            for (Map<String, Object> entry : paramsList) {
+                if (validateParams(entry)) {
+                    paramsMap.put(entry.get("name").toString(), entry.get("value"));
+                } else {
+                    throw new IllegalArgumentException("参数校验失败");
+                }
+            }
+        }
+        return paramsMap;
+    }
+
+    /**
+     * 格式化返回数据
+     */
+    private String formatResultData(Object data, String resultType) throws Exception {
+        if (ResultTypeEnum.ONE.getName().equals(resultType) && data instanceof List) {
+            List<Object> list = (List<Object>) data;
+            return objectMapper.writeValueAsString(Result.success(list.isEmpty() ? null : list.get(0)));
+        }
+        return objectMapper.writeValueAsString(Result.success(data));
+    }
+
+    /**
+     * 校验并处理参数
+     */
+    private boolean validateParams(Map<String, Object> params) {
+        if (params == null || params.isEmpty()) {
             return true;
         }
-        String paramType = queryParam.get("paramType")+"";
-        Object paramValue = queryParam.get("value");
+        
+        String paramType = String.valueOf(params.get("paramType"));
+        Object paramValue = params.get("value");
 
-        // Array类型的拼接参数 进行拆分
-        if ("Array".equalsIgnoreCase(paramType) && paramValue != null) {
+        if ("Array".equalsIgnoreCase(paramType)) {
+            if (paramValue == null || "".equals(paramValue)) {
+                return false;
+            }
             String[] values = paramValue.toString().split(",");
-            queryParam.put("value", Arrays.asList(values));
-        }else if ("Array".equalsIgnoreCase(paramType) && "".equals(paramValue)) {
-            return false;
+            params.put("value", Arrays.asList(values));
         }
         return true;
     }

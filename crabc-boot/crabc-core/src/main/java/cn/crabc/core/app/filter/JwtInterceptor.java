@@ -22,26 +22,32 @@ public class JwtInterceptor implements HandlerInterceptor {
     private long expireTime;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler){
-        if (request.getMethod().toUpperCase().equals("OPTIONS")){
-            return true; // 通过OPTION请求
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        // 放行OPTIONS请求
+        if ("OPTIONS".equals(request.getMethod().toUpperCase())) {
+            return true;
         }
+        
+        // 获取并校验token
         String token = JwtUtil.getToken(request);
         if (token == null) {
             throw new CustomException(ErrorStatusEnum.JWT_LOGIN_EXPIRE.getCode(), ErrorStatusEnum.JWT_UN_AUTH.getMassage());
         }
+        
+        // 解析token
         Claims claims = JwtUtil.parseToken(token);
         if (claims == null) {
             throw new CustomException(ErrorStatusEnum.JWT_LOGIN_EXPIRE.getCode(), ErrorStatusEnum.JWT_UN_AUTH.getMassage());
         }
-        long nowTime = System.currentTimeMillis();
-        Long expire = Long.parseLong(claims.get("expireTime").toString());
-        long time = nowTime - expire;
-        if (time/1000 > expireTime) {
+        
+        // 校验token是否过期
+        long expireTime = Long.parseLong(claims.get("expireTime").toString());
+        long currentTime = System.currentTimeMillis();
+        if ((currentTime - expireTime) / 1000 > this.expireTime) {
             throw new CustomException(ErrorStatusEnum.JWT_LOGIN_EXPIRE.getCode(), ErrorStatusEnum.JWT_LOGIN_EXPIRE.getMassage());
-        }else{
-
         }
+        
+        // 设置用户信息到线程上下文
         UserThreadLocal.set(claims);
         return true;
     }

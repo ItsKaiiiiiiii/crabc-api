@@ -21,7 +21,7 @@ import java.sql.SQLException;
  */
 public class JdbcDataSourceRouter extends AbstractRoutingDataSource {
 
-    private static Logger log = LoggerFactory.getLogger(JdbcDataSourceRouter.class);
+    private static final Logger log = LoggerFactory.getLogger(JdbcDataSourceRouter.class);
     /**
      * 当前线程数据源KEY
      */
@@ -29,38 +29,30 @@ public class JdbcDataSourceRouter extends AbstractRoutingDataSource {
 
     /**
      * 获取数据源key
-     *
-     * @return
      */
     public static String getDataSourceKey() {
-        return JdbcDataSourceRouter.DATA_SOURCE_KEY.get();
+        return DATA_SOURCE_KEY.get();
     }
 
     /**
      * 设置数据源key
-     *
-     * @param key
      */
     public static void setDataSourceKey(String key) {
-        JdbcDataSourceRouter.DATA_SOURCE_KEY.set(key);
+        DATA_SOURCE_KEY.set(key);
     }
 
     /**
      * 移除数据源
      */
     public static void remove() {
-        JdbcDataSourceRouter.DATA_SOURCE_KEY.remove();
+        DATA_SOURCE_KEY.remove();
     }
 
     /**
      * 判断数据源是否存在
      */
     public static boolean exist(String dataSourceId) {
-        DataSource dataSource = DataSourceManager.DATA_SOURCE_POOL_JDBC.get(getDataSourceId(dataSourceId));
-        if (dataSource != null) {
-            return true;
-        }
-        return false;
+        return DataSourceManager.DATA_SOURCE_POOL_JDBC.get(getDataSourceId(dataSourceId)) != null;
     }
 
     /**
@@ -68,47 +60,43 @@ public class JdbcDataSourceRouter extends AbstractRoutingDataSource {
      * @param dataSourceId
      * @return
      */
-    private static String getDataSourceId(String dataSourceId){
+    private static String getDataSourceId(String dataSourceId) {
         return dataSourceId == null ? null : dataSourceId.split(":")[0];
     }
 
     /**
-     * 销毁
-     *
-     * @param dataSourceId
-     * @return
+     * 销毁数据源
      */
     public static void destroy(String dataSourceId) {
         DataSource dataSource = DataSourceManager.DATA_SOURCE_POOL_JDBC.get(getDataSourceId(dataSourceId));
-        if (dataSource instanceof DruidDataSource) {
-            DruidDataSource druidDataSource = (DruidDataSource) dataSource;
-            druidDataSource.close();
-        } else if (dataSource instanceof HikariDataSource) {
-            HikariDataSource hikariDataSource = (HikariDataSource) dataSource;
-            hikariDataSource.close();
+        if (dataSource == null) {
+            return;
         }
-        DataSourceManager.DATA_SOURCE_POOL_JDBC.remove(dataSourceId);
+        try {
+            if (dataSource instanceof DruidDataSource druidDataSource) {
+                druidDataSource.close();
+            } else if (dataSource instanceof HikariDataSource hikariDataSource) {
+                hikariDataSource.close();
+            }
+        } finally {
+            DataSourceManager.DATA_SOURCE_POOL_JDBC.remove(dataSourceId);
+        }
     }
 
     /**
-     * 获取数据源
-     *
-     * @param dataSourceId
-     * @return
+     * 获取指定数据源
      */
     public static DataSource getDataSource(String dataSourceId) {
         DataSource dataSource = DataSourceManager.DATA_SOURCE_POOL_JDBC.get(getDataSourceId(dataSourceId));
         if (dataSource == null) {
-            throw new CustomException(ErrorStatusEnum.DATASOURCE_NOT_FOUNT.getCode(), ErrorStatusEnum.DATASOURCE_NOT_FOUNT.getMassage());
-
+            throw new CustomException(ErrorStatusEnum.DATASOURCE_NOT_FOUNT.getCode(), 
+                ErrorStatusEnum.DATASOURCE_NOT_FOUNT.getMassage());
         }
         return dataSource;
     }
 
     /**
-     * 获取数据源
-     *
-     * @return
+     * 获取当前数据源
      */
     public static DataSource getDataSource() {
         String dataSourceKey = getDataSourceKey();
@@ -131,21 +119,18 @@ public class JdbcDataSourceRouter extends AbstractRoutingDataSource {
 
     /**
      * 切换数据源
-     *
-     * @return
      */
     @Override
     protected DataSource determineTargetDataSource() {
-        Object dataSourceKey = this.determineCurrentLookupKey();
-        // 默认系统数据源
+        Object dataSourceKey = determineCurrentLookupKey();
         if (dataSourceKey == null) {
             return super.getResolvedDefaultDataSource();
         }
         String dataSourceId = getDataSourceId(dataSourceKey.toString());
         DataSource dataSource = DataSourceManager.DATA_SOURCE_POOL_JDBC.get(dataSourceId);
-
         if (dataSource == null) {
-            throw new CustomException(ErrorStatusEnum.DATASOURCE_NOT_FOUNT.getCode(), ErrorStatusEnum.DATASOURCE_NOT_FOUNT.getMassage());
+            throw new CustomException(ErrorStatusEnum.DATASOURCE_NOT_FOUNT.getCode(),
+                ErrorStatusEnum.DATASOURCE_NOT_FOUNT.getMassage());
         }
         return dataSource;
     }
@@ -158,28 +143,34 @@ public class JdbcDataSourceRouter extends AbstractRoutingDataSource {
      */
     @Override
     public Connection getConnection() throws SQLException {
-        Connection connection  = null;
+        Connection connection = null;
         Object dataSourceKey = null;
         try {
-            connection = this.determineTargetDataSource().getConnection();
-            dataSourceKey = this.determineCurrentLookupKey();
-            // dataSouceId:dataSourceType:schemaName
+            connection = determineTargetDataSource().getConnection();
+            dataSourceKey = determineCurrentLookupKey();
+            
             if (dataSourceKey != null && dataSourceKey.toString().contains(":")) {
-                String[] dataSourceStr = dataSourceKey.toString().split(":");
-                if (dataSourceStr.length == 3) {
-                    String dataSourceType = dataSourceStr[1];
-                    String schema = dataSourceStr[2];
-                    if (BaseConstant.CATALOG_DATA_SOURCE.contains(dataSourceType)) {
-                        connection.setCatalog(schema);
-                    }else {
-                        connection.setSchema(schema);
-                    }
+                String[] dataSourceInfo = dataSourceKey.toString().split(":");
+                if (dataSourceInfo.length == 3) {
+                    setConnectionSchema(connection, dataSourceInfo[1], dataSourceInfo[2]);
                 }
             }
-        }catch (Exception e){
-            log.error("-数据源连接获取失败,dataSourceKey:{}",dataSourceKey,e);
+            return connection;
+        } catch (Exception e) {
+            log.error("数据源连接获取失败, dataSourceKey: {}", dataSourceKey, e);
+            throw e;
         }
-        return connection;
+    }
+    
+    /**
+     * 设置连接的schema
+     */
+    private void setConnectionSchema(Connection connection, String dataSourceType, String schema) throws SQLException {
+        if (BaseConstant.CATALOG_DATA_SOURCE.contains(dataSourceType)) {
+            connection.setCatalog(schema);
+        } else {
+            connection.setSchema(schema);
+        }
     }
 
     @Override

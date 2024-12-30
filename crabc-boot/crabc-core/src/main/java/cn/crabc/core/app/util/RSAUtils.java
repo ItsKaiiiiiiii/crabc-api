@@ -1,13 +1,11 @@
 package cn.crabc.core.app.util;
-
-import org.springframework.util.Base64Utils;
-
 import javax.crypto.Cipher;
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 /**
  * RSA加/解密工具类
@@ -24,13 +22,13 @@ public class RSAUtils {
      * @throws Exception
      */
     public static String decryptByPubKey(String pubKey, String text) throws Exception {
-        byte[] bytes = Base64Utils.decodeFromString(pubKey);
+        byte[] bytes = Base64.getDecoder().decode(pubKey);
         X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(bytes);
         KeyFactory keyFactory = KeyFactory.getInstance(RSA);
         PublicKey publicKey = keyFactory.generatePublic(x509EncodedKeySpec);
         Cipher cipher = Cipher.getInstance(RSA);
         cipher.init(Cipher.DECRYPT_MODE, publicKey);
-        byte[] result = Base64Utils.decodeFromString(text);
+        byte[] result = Base64.getDecoder().decode(text);
         return new String(result);
     }
 
@@ -43,14 +41,14 @@ public class RSAUtils {
      * @throws Exception
      */
     public static String encryptByPriKey(String priKey, String text) throws Exception {
-        byte[] bytes = Base64Utils.decodeFromString(priKey);
+        byte[] bytes = Base64.getDecoder().decode(priKey);
         PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(bytes);
         KeyFactory keyFactory = KeyFactory.getInstance(RSA);
         PrivateKey privateKey = keyFactory.generatePrivate(pkcs8EncodedKeySpec);
         Cipher cipher = Cipher.getInstance(RSA);
         cipher.init(Cipher.ENCRYPT_MODE, privateKey);
         byte[] result = cipher.doFinal(text.getBytes());
-        return Base64Utils.encodeToString(result);
+        return Base64.getEncoder().encodeToString(result);
     }
 
     /**
@@ -65,13 +63,13 @@ public class RSAUtils {
         if (text == null || priKey == null) {
             return null;
         }
-        byte[] bytes = Base64Utils.decodeFromString(priKey);
+        byte[] bytes = Base64.getDecoder().decode(priKey);
         PKCS8EncodedKeySpec pkcs8EncodedKeySpec5 = new PKCS8EncodedKeySpec(bytes);
         KeyFactory keyFactory = KeyFactory.getInstance(RSA);
         PrivateKey privateKey = keyFactory.generatePrivate(pkcs8EncodedKeySpec5);
         Cipher cipher = Cipher.getInstance(RSA);
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        byte[] result = cipher.doFinal(Base64Utils.decodeFromString(text));
+        byte[] result = cipher.doFinal(Base64.getDecoder().decode(text));
         return new String(result);
     }
 
@@ -86,7 +84,7 @@ public class RSAUtils {
         if (text == null || pubKey == null) {
             return null;
         }
-        byte[] bytes = Base64Utils.decodeFromString(pubKey);
+        byte[] bytes = Base64.getDecoder().decode(pubKey);
 
         X509EncodedKeySpec x509EncodedKeySpec2 = new X509EncodedKeySpec(bytes);
         KeyFactory keyFactory = KeyFactory.getInstance(RSA);
@@ -94,7 +92,7 @@ public class RSAUtils {
         Cipher cipher = Cipher.getInstance(RSA);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         byte[] result = cipher.doFinal(text.getBytes());
-        return Base64Utils.encodeToString(result);
+        return Base64.getEncoder().encodeToString(result);
     }
 
     /**
@@ -109,8 +107,8 @@ public class RSAUtils {
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         RSAPublicKey rsaPublicKey = (RSAPublicKey) keyPair.getPublic();
         RSAPrivateKey rsaPrivateKey = (RSAPrivateKey) keyPair.getPrivate();
-        String pubKey = Base64Utils.encodeToString(rsaPublicKey.getEncoded());
-        String priKey = Base64Utils.encodeToString(rsaPrivateKey.getEncoded());
+        String pubKey = Base64.getEncoder().encodeToString(rsaPublicKey.getEncoded());
+        String priKey = Base64.getEncoder().encodeToString(rsaPrivateKey.getEncoded());
         RSAKeyPair rsaKeyPair = new RSAKeyPair();
         rsaKeyPair.setPublicKey(pubKey);
         rsaKeyPair.setPrivateKey(priKey);

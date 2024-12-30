@@ -142,63 +142,48 @@ public class ApiInfoController {
     public Result sqlParse(@RequestBody SqlParseVO sqlParse) {
         SqlParseVO sqlParseVO = new SqlParseVO();
         String sql = sqlParse.getSqlScript();
+        
+        // 去除末尾分号
         if (sql.endsWith(";")) {
             sql = sql.substring(0, sql.lastIndexOf(";"));
         }
-        // 对</foreach>标签取值特殊处理
-        Set<String> fields = new HashSet<>();
+        
+        // 收集所有请求参数
+        Set<String> paramNames = new HashSet<>();
+        
+        // 解析foreach标签中的collection参数
         if (sql.contains("</foreach>")) {
-            String regex = "collection='(.*?)'";
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(sql);
-            while (matcher.find()) {
-                String field = matcher.group(1);
-                fields.add(field);
-            }
+            paramNames.addAll(SQLUtil.extractForeachParams(sql));
         }
-        // 提取if标签里面的请求参数
+        
+        // 解析if/when标签中的test条件参数
         if (sql.contains("<if ") || sql.contains("<when ")) {
-            String regex = " test=['\"](\\w+)\\s*(?:!=|>=|<=|==|<|>|&lt;|&lt;=|&gt;|&gt;=)";
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(sql);
-            while (matcher.find()) {
-                String field = matcher.group(1);
-                fields.add(field);
-            }
+            paramNames.addAll(SQLUtil.extractIfParams(sql));
         }
-        String forRegex = "<foreach[\\s\\S]*?</foreach>";
-        sql = sql.replaceAll(forRegex,"()");
-        // 条件字段
-        Set<String> paramNames = SQLUtil.parseParams(sql);
-        if (!fields.isEmpty()) {
-            paramNames.addAll(fields);
-        }
+        
+        // 移除foreach标签内容
+        sql = sql.replaceAll("<foreach[\\s\\S]*?</foreach>", "()");
+        
+        // 解析SQL中的参数
+        paramNames.addAll(SQLUtil.parseParams(sql));
         sqlParseVO.setReqColumns(paramNames);
-        // 返回字段
+        
+        // 过滤SQL并补全条件
         sql = SQLUtil.sqlFilter(sql);
-        // 判断去除标签后的 sql是否正确，自动补全条件
-        if (sql.trim().toLowerCase().endsWith("from")) {
-            sql = sql +" test ";
-        }else if (sql.trim().toLowerCase().endsWith("where")) {
-            sql = sql +" 1=1 ";
-        }
+        sql = SQLUtil.completeSql(sql);
+        
+        // 解析返回字段
         Set<ColumnParseVo> resColumns = new HashSet<>();
-        Set<String> resNames = SQLUtil.analyzeSQL(sql.trim(), sqlParse.getDatasourceType());
-        if (resNames.isEmpty()){
-            sql = SQLUtil.checkTable(sql, " test ");
-            resNames = SQLUtil.analyzeSQL(sql.trim(), sqlParse.getDatasourceType());
-        }
+        Set<String> resNames = SQLUtil.parseResultColumns(sql, sqlParse.getDatasourceType());
+        
+        // 构建返回字段信息
         for (String name : resNames) {
-            if (name.startsWith("*")){
-                continue;
+            if (!name.startsWith("*")) {
+                resColumns.add(SQLUtil.buildColumnInfo(name));
             }
-            ColumnParseVo resColumn = new ColumnParseVo();
-            resColumn.setColName(name);
-            resColumn.setColType("String");
-            resColumn.setItemIndex(0);
-            resColumns.add(resColumn);
         }
         sqlParseVO.setResColumns(resColumns);
+        
         return Result.success(sqlParseVO);
     }
 

@@ -31,10 +31,10 @@ import java.util.*;
  */
 
 public class AuthInterceptor implements HandlerInterceptor {
-    private static Logger log = LoggerFactory.getLogger(AuthInterceptor.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthInterceptor.class);
 
     // API开放接口前缀
-    private final static String API_PRE = "/api/web/";
+    private static final String API_PRE = "/api/web/";
     @Autowired
     private IBaseApiLogService iBaseApiLogService;
     @Value("${crabc.auth.expiresTime:10}")
@@ -42,7 +42,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Autowired
     @Qualifier("apiCache")
-    Cache<String, Object> apiCache;
+    private Cache<String, Object> apiCache;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -61,15 +61,16 @@ public class AuthInterceptor implements HandlerInterceptor {
         // 应用列表
         List<BaseApp> appList = apiInfo.getAppList();
 
-        boolean auth = true;
-        if (ApiAuthEnum.CODE.getName().equalsIgnoreCase(apiInfo.getAuthType())) {
-            auth = checkAppCode(request, appList);
-        } else if (ApiAuthEnum.APP_SECRET.getName().equalsIgnoreCase(apiInfo.getAuthType())) {
-            auth = checkHmacSHA256(request, appList);
-        }
+        boolean auth = switch (apiInfo.getAuthType().toUpperCase()) {
+            case "CODE" -> checkAppCode(request, appList);
+            case "APP_SECRET" -> checkHmacSHA256(request, appList);
+            default -> true;
+        };
+
         if (!auth) {
             throw new CustomException(ErrorStatusEnum.API_UN_AUTH.getCode(), ErrorStatusEnum.API_UN_AUTH.getMassage());
         }
+
         // 存入当前时间，当作是日志的请求时间
         apiInfo.setRequestDate(new Date());
         apiInfo.setRequestTime(System.currentTimeMillis());
@@ -106,8 +107,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         apiLog.setRequestIp(RequestUtils.getIp(request));
         apiLog.setRequestTime(apiInfo.getRequestDate());
         apiLog.setResponseTime(new Date());
-        Long startTime = apiInfo.getRequestTime();
-        apiLog.setCostTime(endTime - startTime);
+        apiLog.setCostTime(endTime - apiInfo.getRequestTime());
         apiLog.setQueryParam(request.getQueryString());
         apiLog.setResponseCode(response.getStatus());
         apiLog.setRequestStatus(response.getStatus() == 200 ? "success" : "fail");
@@ -120,7 +120,6 @@ public class AuthInterceptor implements HandlerInterceptor {
             log.error("响应结果转换异常", e);
         }
         iBaseApiLogService.addLog(apiLog);
-
     }
 
     /**
@@ -132,15 +131,10 @@ public class AuthInterceptor implements HandlerInterceptor {
      */
     private boolean checkAppCode(HttpServletRequest request, List<BaseApp> appList) {
         String appCode = RequestUtils.getAppCode(request);
-        if (appCode == null || "".equals(appCode)) {
+        if (appCode == null || appCode.isEmpty()) {
             return false;
         }
-        for (BaseApp app : appList) {
-            if (app.getAppCode().equals(appCode)) {
-                return true;
-            }
-        }
-        return false;
+        return appList.stream().anyMatch(app -> app.getAppCode().equals(appCode));
     }
 
     /**
@@ -153,9 +147,9 @@ public class AuthInterceptor implements HandlerInterceptor {
      */
     public boolean checkHmacSHA256(HttpServletRequest request, List<BaseApp> appList) {
         // 校验参数
-        String sign = request.getHeader("sign") == null ? request.getParameter("sign") : request.getHeader("sign");
-        String timeStamp = request.getHeader("timestamp") == null ? request.getParameter("timestamp") : request.getHeader("timestamp");
-        String appKey = request.getHeader("appkey") == null ? request.getParameter("appkey") : request.getHeader("appkey");
+        String sign = Optional.ofNullable(request.getHeader("sign")).orElse(request.getParameter("sign"));
+        String timeStamp = Optional.ofNullable(request.getHeader("timestamp")).orElse(request.getParameter("timestamp"));
+        String appKey = Optional.ofNullable(request.getHeader("appkey")).orElse(request.getParameter("appkey"));
         if (appKey == null || sign == null || timeStamp == null) {
             throw new CustomException(ErrorStatusEnum.SHA_PARAM_NOT_FOUNT.getCode(), ErrorStatusEnum.PARAM_NOT_FOUNT.getMassage());
         }
@@ -175,42 +169,36 @@ public class AuthInterceptor implements HandlerInterceptor {
                 paramsMap.putAll(bodyMap);
             }
         }
-        Map<String, String[]> parameterMap = request.getParameterMap();
-        for (String key : parameterMap.keySet()) {
+        request.getParameterMap().forEach((key, values) -> {
             if (request.getHeader("sign") == null && ("sign".equals(key) || "appkey".equals(key) || "timestamp".equals(key))) {
-                continue;
+                return;
             }
-            String[] values = parameterMap.get(key);
             if (values.length == 1) {
                 paramsMap.put(key, values[0]);
             } else {
                 paramsMap.put(key, Arrays.asList(values));
             }
-        }
+        });
 
         ArrayList<String> keys = new ArrayList<>(paramsMap.keySet());
         Collections.sort(keys);
         for (String key : keys) {
             Object value = paramsMap.get(key);
-            bodyStr.append(key + "=" + value.toString() + "&");
+            bodyStr.append(key).append("=").append(value).append("&");
         }
-        bodyStr.append("appkey=" + appKey + "&");
-        bodyStr.append("timestamp=" + timeStamp);
-        String appSecret = "";
-        for (BaseApp app : appList) {
-            if (app.getAppKey().equals(appKey)) {
-                appSecret = app.getAppSecret();
-            }
-        }
+        bodyStr.append("appkey=").append(appKey).append("&");
+        bodyStr.append("timestamp=").append(timeStamp);
+        String appSecret = appList.stream()
+                .filter(app -> app.getAppKey().equals(appKey))
+                .map(BaseApp::getAppSecret)
+                .findFirst()
+                .orElse("");
         String signature = null;
         try {
             signature = HmacSHAUtils.HmacSHA256(bodyStr.toString(), appSecret);
         } catch (Exception e) {
             log.error("参数签名认证异常", e);
         }
-        if (sign.equalsIgnoreCase(signature)) {
-            return true;
-        }
-        return false;
+        return sign.equalsIgnoreCase(signature);
     }
 }

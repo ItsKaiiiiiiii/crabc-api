@@ -19,15 +19,11 @@ public class JdbcMetaData implements MetaDataMapper {
     @Override
     public List<Schema> getCatalogs(String dataSourceId) {
         List<Schema> catalogs = new ArrayList<>();
-        Connection connection = null;
-        ResultSet resultSet = null;
-        DataSource dataSource = JdbcDataSourceRouter.getDataSource(dataSourceId);
-        try {
-            connection = dataSource.getConnection();
-            resultSet = connection.getMetaData().getCatalogs();
+        try (Connection connection = JdbcDataSourceRouter.getDataSource(dataSourceId).getConnection();
+             ResultSet resultSet = connection.getMetaData().getCatalogs()) {
             while (resultSet.next()) {
                 String schemaName = resultSet.getString(1);
-                if ("information_schema".equalsIgnoreCase(schemaName) || "performance_schema".equalsIgnoreCase(schemaName) || "pg_catalog".equals(schemaName)) {
+                if (isSystemSchema(schemaName)) {
                     continue;
                 }
                 Schema schema = new Schema();
@@ -35,157 +31,120 @@ public class JdbcMetaData implements MetaDataMapper {
                 schema.setCatalog(schemaName);
                 catalogs.add(schema);
             }
+            return catalogs;
         } catch (Exception e) {
-            throw new IllegalStateException("query catalogs is error", e);
-        } finally {
-            try {
-                if (resultSet != null) {
-                    resultSet.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+            throw new IllegalStateException("查询catalogs失败", e);
         }
-        return catalogs;
     }
 
     @Override
     public List<Schema> getSchemas(String dataSourceId, String catalog) {
         List<Schema> schemas = new ArrayList<>();
-        Connection connection = null;
-        ResultSet resultSet = null;
-        DataSource dataSource = JdbcDataSourceRouter.getDataSource(dataSourceId);
-        try {
-            connection = dataSource.getConnection();
-            resultSet = connection.getMetaData().getSchemas(catalog, null);
+        try (Connection connection = JdbcDataSourceRouter.getDataSource(dataSourceId).getConnection();
+             ResultSet resultSet = connection.getMetaData().getSchemas(catalog, null)) {
             while (resultSet.next()) {
-                Schema schema = new Schema();
                 String schemaName = resultSet.getString(1);
-                schema.setSchema(schemaName);
-                schema.setCatalog(catalog);
-//                schema.setDatasourceId(dataSourceId);
-                if ("information_schema".equalsIgnoreCase(schemaName) || "performance_schema".equalsIgnoreCase(schemaName) || "pg_catalog".equals(schemaName)) {
+                if (isSystemSchema(schemaName)) {
                     continue;
                 }
+                Schema schema = new Schema();
+                schema.setSchema(schemaName);
+                schema.setCatalog(catalog);
                 schemas.add(schema);
             }
+            return schemas;
         } catch (Exception e) {
             throw new CustomException(51002, "查询schema失败，请检查数据源是否正确");
-        } finally {
-            try {
-                if (resultSet != null) {
-                    resultSet.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
         }
-        return schemas;
     }
 
     @Override
     public List<Table> getTables(String dataSourceId, String catalog, String schema) {
         List<Table> tables = new ArrayList<>();
-        DataSource dataSource = JdbcDataSourceRouter.getDataSource(dataSourceId);
         String[] tableType = {"TABLE", "VIEW"};
-        Connection connection = null;
-        ResultSet resultSet = null;
-        try {
-            connection = dataSource.getConnection();
+        try (Connection connection = JdbcDataSourceRouter.getDataSource(dataSourceId).getConnection()) {
             // 获取表和视图
-            resultSet = connection.getMetaData().getTables(catalog, schema, null, tableType);
-            while (resultSet.next()) {
-                Table table = new Table();
-                table.setTableName(resultSet.getString("TABLE_NAME"));
-                table.setRemarks(resultSet.getString("REMARKS"));
-                table.setTableType(resultSet.getString("TABLE_TYPE"));
-                table.setCatalog(resultSet.getString("TABLE_CAT"));
-                table.setSchema(schema);
-                tables.add(table);
-            }
-            // 获取存储过程
-            try {
-                ResultSet procedures = connection.getMetaData().getProcedures(catalog, schema, null);
-                while (procedures.next()) {
-                    Table table = new Table();
-                    table.setTableName(procedures.getString("PROCEDURE_NAME"));
-                    table.setRemarks(procedures.getString("REMARKS"));
-                    table.setTableType("PROCEDURE");
-                    table.setCatalog(procedures.getString("PROCEDURE_CAT"));
-                    table.setSchema(schema);
-                    tables.add(table);
+            try (ResultSet resultSet = connection.getMetaData().getTables(catalog, schema, null, tableType)) {
+                while (resultSet.next()) {
+                    tables.add(buildTable(resultSet, schema));
                 }
-            }catch (Exception e1) {
             }
+            
+            // 获取存储过程
+            try (ResultSet procedures = connection.getMetaData().getProcedures(catalog, schema, null)) {
+                while (procedures.next()) {
+                    tables.add(buildProcedure(procedures, schema));
+                }
+            } catch (Exception ignored) {}
+            
+            return tables;
         } catch (Exception e) {
             throw new CustomException(51003, "查询table失败，请检查数据源是否正确");
-        } finally {
-            try {
-                if (resultSet != null) {
-                    resultSet.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
         }
-        return tables;
     }
 
     @Override
     public List<Column> getColumns(String dataSourceId, String catalog, String schema, String table) {
         List<Column> columns = new ArrayList<>();
-        DataSource dataSource = JdbcDataSourceRouter.getDataSource(dataSourceId);
-        Connection connection = null;
-        ResultSet resultSet = null;
-        try {
-            connection = dataSource.getConnection();
-            resultSet = connection.getMetaData().getColumns(catalog, schema, table, null);
+        try (Connection connection = JdbcDataSourceRouter.getDataSource(dataSourceId).getConnection();
+             ResultSet resultSet = connection.getMetaData().getColumns(catalog, schema, table, null)) {
             while (resultSet.next()) {
-                Column column = new Column();
-                column.setColumnName(resultSet.getString("COLUMN_NAME"));
-                column.setRemarks(resultSet.getString("REMARKS"));
-                column.setColumnType(resultSet.getString("TYPE_NAME"));
-                column.setColumnSize(resultSet.getString("COLUMN_SIZE"));
-                column.setColumnDefault(resultSet.getString("COLUMN_DEF"));
-                column.setDecimalDigits(resultSet.getString("DECIMAL_DIGITS"));
-                column.setCatalog(resultSet.getString("TABLE_CAT"));
-                String columnType = column.getColumnType() == null ? "": column.getColumnType().toUpperCase();
-                if (columnType.contains("DATE") || columnType.contains("TIME")) {
-                    column.setTypeIcon("date");
-                }else if(columnType.contains("INT") || columnType.contains("NUMBER")
-                        || columnType.contains("FLOAT") || columnType.contains("DECIMAL")) {
-                    column.setTypeIcon("int");
-                }else{
-                    column.setTypeIcon("str");
-                }
-                //column.setDatasourceId(dataSourceId);
-                column.setSchema(schema);
-                column.setTableName(table);
-                columns.add(column);
+                columns.add(buildColumn(resultSet, schema, table));
             }
+            return columns;
         } catch (Exception e) {
             throw new CustomException(51004, "查询字段失败，请检查数据源是否正确");
-        } finally {
-            try {
-                if (resultSet != null) {
-                    resultSet.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
         }
-        return columns;
+    }
+
+    private boolean isSystemSchema(String schemaName) {
+        return "information_schema".equalsIgnoreCase(schemaName) 
+            || "performance_schema".equalsIgnoreCase(schemaName) 
+            || "pg_catalog".equals(schemaName);
+    }
+
+    private Table buildTable(ResultSet rs, String schema) throws SQLException {
+        Table table = new Table();
+        table.setTableName(rs.getString("TABLE_NAME"));
+        table.setRemarks(rs.getString("REMARKS")); 
+        table.setTableType(rs.getString("TABLE_TYPE"));
+        table.setCatalog(rs.getString("TABLE_CAT"));
+        table.setSchema(schema);
+        return table;
+    }
+
+    private Table buildProcedure(ResultSet rs, String schema) throws SQLException {
+        Table table = new Table();
+        table.setTableName(rs.getString("PROCEDURE_NAME"));
+        table.setRemarks(rs.getString("REMARKS"));
+        table.setTableType("PROCEDURE");
+        table.setCatalog(rs.getString("PROCEDURE_CAT")); 
+        table.setSchema(schema);
+        return table;
+    }
+
+    private Column buildColumn(ResultSet rs, String schema, String table) throws SQLException {
+        Column column = new Column();
+        column.setColumnName(rs.getString("COLUMN_NAME"));
+        column.setRemarks(rs.getString("REMARKS"));
+        column.setColumnType(rs.getString("TYPE_NAME"));
+        column.setColumnSize(rs.getString("COLUMN_SIZE"));
+        column.setColumnDefault(rs.getString("COLUMN_DEF"));
+        column.setDecimalDigits(rs.getString("DECIMAL_DIGITS"));
+        column.setCatalog(rs.getString("TABLE_CAT"));
+        column.setSchema(schema);
+        column.setTableName(table);
+        
+        String columnType = column.getColumnType() == null ? "" : column.getColumnType().toUpperCase();
+        if (columnType.contains("DATE") || columnType.contains("TIME")) {
+            column.setTypeIcon("date");
+        } else if (columnType.contains("INT") || columnType.contains("NUMBER")
+                || columnType.contains("FLOAT") || columnType.contains("DECIMAL")) {
+            column.setTypeIcon("int");
+        } else {
+            column.setTypeIcon("str");
+        }
+        
+        return column;
     }
 }

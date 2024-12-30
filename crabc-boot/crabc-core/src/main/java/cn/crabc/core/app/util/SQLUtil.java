@@ -2,6 +2,7 @@ package cn.crabc.core.app.util;
 
 
 import cn.crabc.core.app.entity.BaseApiParam;
+import cn.crabc.core.app.entity.vo.ColumnParseVo;
 import cn.crabc.core.datasource.exception.CustomException;
 import com.alibaba.druid.DbType;
 import com.alibaba.druid.sql.SQLUtils;
@@ -14,7 +15,7 @@ import com.alibaba.druid.sql.ast.statement.SQLSelect;
 import com.alibaba.druid.sql.ast.statement.SQLSelectItem;
 import com.alibaba.druid.sql.ast.statement.SQLSelectQueryBlock;
 import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
-import com.alibaba.druid.sql.dialect.clickhouse.visitor.ClickSchemaStatVisitor;
+import com.alibaba.druid.sql.dialect.clickhouse.visitor.CKStatVisitor;
 import com.alibaba.druid.sql.dialect.db2.visitor.DB2SchemaStatVisitor;
 import com.alibaba.druid.sql.dialect.hive.visitor.HiveSchemaStatVisitor;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
@@ -195,7 +196,7 @@ public class SQLUtil {
                     visitor = new DB2SchemaStatVisitor();
                     break;
                 case "clickhouse":
-                    visitor = new ClickSchemaStatVisitor();
+                    visitor = new CKStatVisitor();
                     break;
                 case "hive":
                     visitor = new HiveSchemaStatVisitor();
@@ -416,4 +417,50 @@ public class SQLUtil {
         return sb.toString();
     }
 
+    public static Set<String> extractForeachParams(String sql) {
+        Set<String> params = new HashSet<>();
+        Pattern pattern = Pattern.compile("collection='(.*?)'");
+        Matcher matcher = pattern.matcher(sql);
+        while (matcher.find()) {
+            params.add(matcher.group(1));
+        }
+        return params;
+    }
+
+    public static Set<String> extractIfParams(String sql) {
+        Set<String> params = new HashSet<>();
+        Pattern pattern = Pattern.compile(" test=['\"](\\w+)\\s*(?:!=|>=|<=|==|<|>|&lt;|&lt;=|&gt;|&gt;=)");
+        Matcher matcher = pattern.matcher(sql);
+        while (matcher.find()) {
+            params.add(matcher.group(1));
+        }
+        return params;
+    }
+
+    public static String completeSql(String sql) {
+        sql = sql.trim().toLowerCase();
+        if (sql.endsWith("from")) {
+            return sql + " test";
+        } else if (sql.endsWith("where")) {
+            return sql + " 1=1";
+        }
+        return sql;
+    }
+
+    public static Set<String> parseResultColumns(String sql, String datasourceType) {
+        Set<String> resNames = SQLUtil.analyzeSQL(sql.trim(), datasourceType);
+        if (resNames.isEmpty()) {
+            sql = SQLUtil.checkTable(sql, " test ");
+            resNames = SQLUtil.analyzeSQL(sql.trim(), datasourceType);
+        }
+        return resNames;
+    }
+
+    public static ColumnParseVo buildColumnInfo(String name) {
+        ColumnParseVo column = new ColumnParseVo();
+        column.setColName(name);
+        column.setColType("String");
+        column.setItemIndex(0);
+        return column;
+    }
 }

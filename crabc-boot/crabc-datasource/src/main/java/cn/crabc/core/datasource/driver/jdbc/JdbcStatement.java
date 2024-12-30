@@ -33,11 +33,10 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class JdbcStatement implements StatementMapper {
-    private static Logger log = LoggerFactory.getLogger(JdbcStatement.class);
-    private BaseDataHandleMapper baseMapper;
-    private static final Integer PAGE_SIZE = 50;
-
-    private static final Integer PAGE_NUM = 1;
+    private static final Logger log = LoggerFactory.getLogger(JdbcStatement.class);
+    private final BaseDataHandleMapper baseMapper;
+    private static final int PAGE_SIZE = 50;
+    private static final int PAGE_NUM = 1;
 
     public JdbcStatement(BaseDataHandleMapper baseMapper) {
         this.baseMapper = baseMapper;
@@ -45,43 +44,42 @@ public class JdbcStatement implements StatementMapper {
 
     @Override
     public Map<String, Object> selectOne(String dataSourceId, String schema, String sql, Object params) {
-        List<Map<String, Object>> maps = this.selectList(dataSourceId, schema, sql, params);
-        return maps.size() > 0 ? maps.get(0) : new HashMap<>();
+        List<Map<String, Object>> maps = selectList(dataSourceId, schema, sql, params);
+        return maps.isEmpty() ? new HashMap<>() : maps.get(0);
     }
 
     @Override
     public List<Map<String, Object>> selectList(String dataSourceId, String schema, String sql, Object params) {
-        // 列表默认查询15条
-        PageInfo page = this.selectPage(dataSourceId, schema, sql, params, PAGE_NUM, PAGE_SIZE);
+        PageInfo page = selectPage(dataSourceId, schema, sql, params, PAGE_NUM, PAGE_SIZE);
         return page.getList();
     }
 
     @Override
     public PageInfo selectPage(String dataSourceId, String schema, String sql, Object params, int pageNum, int pageSize) {
-        // 判断是否是预览运行SQL
         String execType = null;
         List<Map<String, Object>> list = new ArrayList<>();
         try {
-            Map<String, Object> paramsMap = this.setParams(dataSourceId, schema, sql, params);
-            if (paramsMap.containsKey(BaseConstant.BASE_API_EXEC_TYPE)) {
-                execType = paramsMap.get(BaseConstant.BASE_API_EXEC_TYPE).toString();
-            }
+            Map<String, Object> paramsMap = setParams(dataSourceId, schema, sql, params);
+            execType = (String)paramsMap.get(BaseConstant.BASE_API_EXEC_TYPE);
+            
             Object pageSetup = paramsMap.get(BaseConstant.PAGE_SETUP);
             int pageCount = pageSetup != null ? Integer.parseInt(pageSetup.toString()) : 0;
-            // 判断是否分页
-            if (0 != pageCount && !checkPage(sql)) {
+            
+            if (pageCount != 0 && !checkPage(sql)) {
                 PageHelper.startPage(pageNum, pageSize);
             }
             list = baseMapper.executeQuery(paramsMap);
 
         } catch (Exception e) {
             Throwable cause = e.getCause();
-            log.error("--SQL执行失败，请检查SQL是否正常: {}", cause == null ? e : cause.getMessage());
+            String errorMsg = cause == null ? e.getMessage() : cause.getMessage();
+            log.error("SQL执行失败，请检查SQL是否正常: {}", errorMsg);
+            
             if (execType == null) {
-                throw new CustomException(51000, cause == null ? e.getMessage() : cause.getMessage());
+                throw new CustomException(51000, errorMsg);
             } else {
                 Map<String, Object> errorMap = new HashMap<>();
-                errorMap.put("执行异常", "SQL执行失败：" + cause == null ? e.getMessage() : cause.getMessage());
+                errorMap.put("执行异常", "SQL执行失败：" + errorMsg);
                 list.add(errorMap);
             }
         } finally {
@@ -93,30 +91,26 @@ public class JdbcStatement implements StatementMapper {
 
     @Override
     public int insert(String dataSourceId, String schema, String sql, Object params) {
-        Integer result;
         try {
-            Map<String, Object> paramsMap = this.setParams(dataSourceId, schema, sql, params);
-            result = baseMapper.executeInsert(paramsMap);
+            Map<String, Object> paramsMap = setParams(dataSourceId, schema, sql, params);
+            return baseMapper.executeInsert(paramsMap);
         } catch (Exception e) {
-            log.error("--SQL执行失败，请检查SQL是否正常", e);
+            log.error("SQL执行失败，请检查SQL是否正常", e);
             throw new CustomException(ErrorStatusEnum.API_SQL_ERROR.getCode(), ErrorStatusEnum.API_SQL_ERROR.getMassage());
         } finally {
-            // 移除线程
             JdbcDataSourceRouter.remove();
         }
-        return result;
     }
 
     @Override
     public int delete(String dataSourceId, String schema, String sql, Object params) {
         try {
-            Map<String, Object> paramsMap = this.setParams(dataSourceId, schema, sql, params);
+            Map<String, Object> paramsMap = setParams(dataSourceId, schema, sql, params);
             return baseMapper.executeDelete(paramsMap);
         } catch (Exception e) {
-            log.error("--SQL执行失败，请检查SQL是否正常", e);
+            log.error("SQL执行失败，请检查SQL是否正常", e);
             throw new CustomException(ErrorStatusEnum.API_SQL_ERROR.getCode(), ErrorStatusEnum.API_SQL_ERROR.getMassage());
         } finally {
-            // 移除线程
             JdbcDataSourceRouter.remove();
         }
     }
@@ -124,62 +118,42 @@ public class JdbcStatement implements StatementMapper {
     @Override
     public int update(String dataSourceId, String schema, String sql, Object params) {
         try {
-            Map<String, Object> paramsMap = this.setParams(dataSourceId, schema, sql, params);
+            Map<String, Object> paramsMap = setParams(dataSourceId, schema, sql, params);
             return baseMapper.executeUpdate(paramsMap);
         } catch (Exception e) {
-            log.error("--SQL执行失败，请检查SQL是否正常", e);
+            log.error("SQL执行失败，请检查SQL是否正常", e);
             throw new CustomException(ErrorStatusEnum.API_SQL_ERROR.getCode(), ErrorStatusEnum.API_SQL_ERROR.getMassage());
         } finally {
-            // 移除线程
             JdbcDataSourceRouter.remove();
         }
     }
 
-
-    /**
-     * 设置请求参数
-     *
-     * @param dataSourceId
-     * @param schema
-     * @param sql
-     * @param params
-     * @return
-     */
-    public Map<String, Object> setParams(String dataSourceId, String schema, String sql, Object params) {
+    private Map<String, Object> setParams(String dataSourceId, String schema, String sql, Object params) {
         Map<String, Object> paramsMap = new HashMap<>();
         paramsMap.put(BaseConstant.BASE_SQL, sql);
         if (params instanceof Map) {
-            Map<String, Object> map = (Map<String, Object>) params;
-            paramsMap.putAll(map);
+            paramsMap.putAll((Map<String, Object>) params);
         }
-        String dataSourceType = paramsMap.containsKey(BaseConstant.DATA_SOURCE_TYPE) ? paramsMap.get(BaseConstant.DATA_SOURCE_TYPE).toString() : "";
-        // 设置线程数据源
-        if (schema != null && !"".equals(schema)) {
-            // dataSourceId:dataSourceType:schema
-            dataSourceId = dataSourceId + ":"+ dataSourceType + ":" + schema;
+        
+        if (schema != null && !schema.isEmpty()) {
+            String dataSourceType = (String)paramsMap.getOrDefault(BaseConstant.DATA_SOURCE_TYPE, "");
+            dataSourceId = String.format("%s:%s:%s", dataSourceId, dataSourceType, schema);
         }
         JdbcDataSourceRouter.setDataSourceKey(dataSourceId);
         return paramsMap;
     }
 
-    /**
-     * 校验SQL是否包含分页
-     * @param sql
-     * @return
-     */
-    private boolean checkPage(String sql){
-        // 匹配limit+ 数字的规则，mysql,tidb
-        String mysql = "(?i)limit.*?\\d";
-        // 匹配limit+ 数字的规则，postgres, sqlserver2012以上
-        String postgres = "(?i)offset.*?\\d";
-        // 匹配ROWNUM关键字分页，oracle
-        String oracle ="(?i)ROWNUM.*?\\d";
-        if (Pattern.compile(mysql).matcher(sql).find()){
-            return true;
-        }else if(Pattern.compile(postgres).matcher(sql).find()){
-            return true;
-        }else if(Pattern.compile(oracle).matcher(sql).find()){
-            return true;
+    private boolean checkPage(String sql) {
+        String[] patterns = {
+            "(?i)limit.*?\\d",      // mysql,tidb
+            "(?i)offset.*?\\d",     // postgres, sqlserver2012+
+            "(?i)ROWNUM.*?\\d"      // oracle
+        };
+        
+        for (String pattern : patterns) {
+            if (Pattern.compile(pattern).matcher(sql).find()) {
+                return true;
+            }
         }
         return false;
     }

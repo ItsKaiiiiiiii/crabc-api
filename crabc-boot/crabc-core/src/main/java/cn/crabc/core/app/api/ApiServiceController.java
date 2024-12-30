@@ -39,20 +39,13 @@ public class ApiServiceController {
         if (api == null) {
             return Result.error(ErrorStatusEnum.API_INVALID.getCode(), ErrorStatusEnum.API_INVALID.getMassage());
         }
-        if (paramMap != null ) {
-            paramMap.put(BaseConstant.PAGE_SETUP, api.getPageSetup() == null ? 0 : api.getPageSetup());
-            if (!checkParams(api.getRequestParams(), paramMap) ||
-                    (api.getPageSetup() == 1 && !paramMap.containsKey(BaseConstant.PAGE_NUM))) {
-                return Result.error(ErrorStatusEnum.PARAM_NOT_FOUNT.getCode(), ErrorStatusEnum.PARAM_NOT_FOUNT.getMassage());
-            }
+        
+        // 参数校验
+        if (!validateParams(api, paramMap)) {
+            return Result.error(ErrorStatusEnum.PARAM_NOT_FOUNT.getCode(), ErrorStatusEnum.PARAM_NOT_FOUNT.getMassage());
         }
-        Object data = baseDataService.execute(api.getDatasourceId(),api.getDatasourceType(), api.getSchemaName(), api.getSqlScript(), paramMap);
-        if (ResultTypeEnum.ONE.getName().equals(api.getResultType()) && data instanceof List) {
-            List<Object> list  = (List<Object>) data;
-            return Result.success(list.isEmpty() ? null : list.get(0));
-        }else{
-            return Result.success(data);
-        }
+
+        return executeApi(api, paramMap);
     }
 
     /**
@@ -68,25 +61,17 @@ public class ApiServiceController {
         if (api == null) {
             return Result.error(ErrorStatusEnum.API_INVALID.getCode(), ErrorStatusEnum.API_INVALID.getMassage());
         }
-        if (paramMap == null) {
-            paramMap = new HashMap<>();
-        }
-        if (body instanceof Map) {
-            Map<String, Object> map = (Map<String, Object>) body;
-            paramMap.putAll(map);
-        }
-        // 校验参数
-        if (!checkParams( api.getRequestParams(), paramMap)) {
+
+        // 合并请求参数
+        Map<String, Object> mergedParams = mergeParams(paramMap, body);
+        
+        // 参数校验
+        if (!checkParams(api.getRequestParams(), mergedParams)) {
             return Result.error(ErrorStatusEnum.PARAM_NOT_FOUNT.getCode(), ErrorStatusEnum.PARAM_NOT_FOUNT.getMassage());
         }
-        paramMap.put(BaseConstant.PAGE_SETUP, api.getPageSetup());
-        Object data = baseDataService.execute(api.getDatasourceId(),api.getDatasourceType(), api.getSchemaName(), api.getSqlScript(), paramMap);
-        if (ResultTypeEnum.ONE.getName().equals(api.getResultType()) && data instanceof List) {
-            List<Object> list  = (List<Object>) data;
-            return Result.success(list.isEmpty() ? null : list.get(0));
-        }else{
-            return Result.success(data);
-        }
+
+        mergedParams.put(BaseConstant.PAGE_SETUP, api.getPageSetup());
+        return executeApi(api, mergedParams);
     }
 
     /**
@@ -100,21 +85,68 @@ public class ApiServiceController {
         if (apiParams == null || paramMap == null) {
             return true;
         }
+        
         for (BaseApiParam param : apiParams) {
             String paramName = param.getParamName();
             String paramType = param.getParamType();
-            if (!paramMap.containsKey(paramName) && param.getRequired()) {
+            Object value = paramMap.get(paramName);
+
+            // 必填参数校验
+            if (param.getRequired() && !paramMap.containsKey(paramName)) {
                 return false;
             }
-            Object value = paramMap.get(paramName);
-            // Array类型的拼接参数 进行拆分
-            if ("Array".equalsIgnoreCase(paramType) && value !=null) {
+
+            // Array类型参数处理
+            if ("Array".equalsIgnoreCase(paramType)) {
+                if (value == null || "".equals(value)) {
+                    return false;
+                }
                 String[] values = value.toString().split(",");
                 paramMap.put(paramName, Arrays.asList(values));
-            }else if ("Array".equalsIgnoreCase(paramType) && "".equals(value)) {
-                return false;
             }
         }
         return true;
+    }
+
+    /**
+     * 验证请求参数
+     */
+    private boolean validateParams(ApiInfoDTO api, Map<String, Object> paramMap) {
+        if (paramMap == null) {
+            return true;
+        }
+        
+        paramMap.put(BaseConstant.PAGE_SETUP, api.getPageSetup() == null ? 0 : api.getPageSetup());
+        
+        return checkParams(api.getRequestParams(), paramMap) && 
+               !(api.getPageSetup() == 1 && !paramMap.containsKey(BaseConstant.PAGE_NUM));
+    }
+
+    /**
+     * 合并请求参数
+     */
+    private Map<String, Object> mergeParams(Map<String, Object> paramMap, Object body) {
+        Map<String, Object> mergedParams = new HashMap<>();
+        if (paramMap != null) {
+            mergedParams.putAll(paramMap);
+        }
+        if (body instanceof Map) {
+            mergedParams.putAll((Map<String, Object>) body);
+        }
+        return mergedParams;
+    }
+
+    /**
+     * 执行API调用
+     */
+    private Result executeApi(ApiInfoDTO api, Map<String, Object> params) {
+        Object data = baseDataService.execute(api.getDatasourceId(), api.getDatasourceType(), 
+                                            api.getSchemaName(), api.getSqlScript(), params);
+                                            
+        if (ResultTypeEnum.ONE.getName().equals(api.getResultType()) && data instanceof List) {
+            List<Object> list = (List<Object>) data;
+            return Result.success(list.isEmpty() ? null : list.get(0));
+        }
+        return Result.success(data);
     }
 }
