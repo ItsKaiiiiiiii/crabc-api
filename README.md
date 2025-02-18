@@ -136,10 +136,10 @@ java -jar crabc-admin.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/cr
 | 像素云图科技有限公司   |
 | 前景科技有限公司     |
 | 方寸图信息有限公司    |
-
+| 鹭栖技术信息公司     |
 
 ## 交流群
-**进群前请先点 Star**
+**进群前请先点【Star】谢谢**
 
 QQ群：748993036
 
