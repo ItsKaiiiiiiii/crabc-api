@@ -141,5 +141,8 @@ java -jar crabc-admin.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/cr
 ## 交流群
 **进群前请先点 Star**
 
-加微信进群 (请备注crabc)
+QQ群：748993036
+
+商用咨询加微信 (请备注crabc)
+
 ![img.png](doc/img.png)
