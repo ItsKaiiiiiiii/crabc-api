@@ -58,7 +58,7 @@ gitee: https://gitee.com/linebyte/crabc
 <dependency>
     <groupId>cn.crabc</groupId>
     <artifactId>crabc-spring-boot-starter</artifactId>
-    <version>3.3.0</version>
+    <version>3.3.1</version>
 </dependency>
 ```
 在程序启动类中添加下面注解
@@ -137,6 +137,7 @@ java -jar crabc-admin.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/cr
 | 前景科技有限公司     |
 | 方寸图信息有限公司    |
 | 鹭栖技术信息公司     |
+| 循脉医疗科技有限公司   |
 
 ## 交流群
 **进群前请先点【Star】谢谢**
