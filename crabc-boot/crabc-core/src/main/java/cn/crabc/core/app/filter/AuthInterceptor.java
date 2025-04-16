@@ -3,11 +3,10 @@ package cn.crabc.core.app.filter;
 import cn.crabc.core.app.entity.BaseApiLog;
 import cn.crabc.core.app.entity.BaseApp;
 import cn.crabc.core.app.entity.dto.ApiInfoDTO;
-import cn.crabc.core.app.enums.ApiAuthEnum;
 import cn.crabc.core.app.service.system.IBaseApiLogService;
 import cn.crabc.core.app.util.ApiThreadLocal;
-import cn.crabc.core.app.util.HmacSHAUtils;
 import cn.crabc.core.app.util.RequestUtils;
+import cn.crabc.core.app.util.SM3Util;
 import cn.crabc.core.datasource.enums.ErrorStatusEnum;
 import cn.crabc.core.datasource.exception.CustomException;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -138,7 +137,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * 参数签名认证
+     * 国密签名认证
      *
      * @param request
      * @param appList
@@ -146,7 +145,7 @@ public class AuthInterceptor implements HandlerInterceptor {
      * @throws Exception
      */
     public boolean checkHmacSHA256(HttpServletRequest request, List<BaseApp> appList) {
-        // 校验参数
+        // 认证参数
         String sign = Optional.ofNullable(request.getHeader("sign")).orElse(request.getParameter("sign"));
         String timeStamp = Optional.ofNullable(request.getHeader("timestamp")).orElse(request.getParameter("timestamp"));
         String appKey = Optional.ofNullable(request.getHeader("appkey")).orElse(request.getParameter("appkey"));
@@ -159,46 +158,13 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (nowTime > expiresTime * 60 * 1000) {
             throw new CustomException(ErrorStatusEnum.SHA_TIMESTAMP_EXPIRE.getCode(), ErrorStatusEnum.SHA_TIMESTAMP_EXPIRE.getMassage());
         }
-        String method = request.getMethod();
-        StringBuilder bodyStr = new StringBuilder();
-        // POST和PUT才进行Body参数解析
-        Map<String, Object> paramsMap = new HashMap<>();
-        if ("POST".equals(method) || "PUT".equals(method)) {
-            if (request instanceof BaseRequestWrapper) {
-                Map<String, Object> bodyMap = RequestUtils.getBodyMap(request);
-                paramsMap.putAll(bodyMap);
-            }
-        }
-        request.getParameterMap().forEach((key, values) -> {
-            if (request.getHeader("sign") == null && ("sign".equals(key) || "appkey".equals(key) || "timestamp".equals(key))) {
-                return;
-            }
-            if (values.length == 1) {
-                paramsMap.put(key, values[0]);
-            } else {
-                paramsMap.put(key, Arrays.asList(values));
-            }
-        });
 
-        ArrayList<String> keys = new ArrayList<>(paramsMap.keySet());
-        Collections.sort(keys);
-        for (String key : keys) {
-            Object value = paramsMap.get(key);
-            bodyStr.append(key).append("=").append(value).append("&");
-        }
-        bodyStr.append("appkey=").append(appKey).append("&");
-        bodyStr.append("timestamp=").append(timeStamp);
         String appSecret = appList.stream()
                 .filter(app -> app.getAppKey().equals(appKey))
                 .map(BaseApp::getAppSecret)
                 .findFirst()
                 .orElse("");
-        String signature = null;
-        try {
-            signature = HmacSHAUtils.HmacSHA256(bodyStr.toString(), appSecret);
-        } catch (Exception e) {
-            log.error("参数签名认证异常", e);
-        }
-        return sign.equalsIgnoreCase(signature);
+
+        return SM3Util.verify(appSecret + timeStamp, sign);
     }
 }

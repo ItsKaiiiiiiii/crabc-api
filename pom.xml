@@ -9,7 +9,7 @@
     <version>${revision}</version>
 
     <packaging>pom</packaging>
-    <description>通用开发平台</description>
+    <description>接口开发平台</description>
     <modules>
         <module>crabc-boot</module>
         <module>crabc-spring-boot-starter</module>
@@ -30,6 +30,8 @@
         <fastjson.version>2.0.49</fastjson.version>
         <jwt.version>0.12.5</jwt.version>
         <commons-pool2.version>2.12.0</commons-pool2.version>
+        <lombok.version>1.18.34</lombok.version>
+        <jdk18on.version>1.80</jdk18on.version>
     </properties>
     <repositories>
         <repository>
