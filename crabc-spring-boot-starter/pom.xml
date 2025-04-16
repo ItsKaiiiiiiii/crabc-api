@@ -4,13 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.0</version>
+        <artifactId>crabc</artifactId>
+        <groupId>cn.crabc</groupId>
+        <version>${revision}</version>
     </parent>
-
     <artifactId>crabc-spring-boot-starter</artifactId>
-    <version>3.3.0</version>
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
@@ -20,7 +18,7 @@
         <dependency>
             <groupId>cn.crabc</groupId>
             <artifactId>crabc-core</artifactId>
-            <version>3.3.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
