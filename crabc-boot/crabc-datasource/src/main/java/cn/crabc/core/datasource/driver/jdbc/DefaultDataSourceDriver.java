@@ -28,15 +28,29 @@ public abstract class DefaultDataSourceDriver implements DataSourceDriver {
 
     @Override
     public String test(BaseDataSource baseDataSource) {
-        try (HikariDataSource dataSource = createHikariDataSource(baseDataSource, true)) {
-            try (Connection connection = dataSource.getConnection()) {
-                return "1";
-            }
+        Connection connection = null;
+        HikariDataSource dataSource = null;
+        try {
+            dataSource = createHikariDataSource(baseDataSource, true);
+            connection = dataSource.getConnection();
+
         } catch (Exception e) {
             Throwable cause = e.getCause();
             log.error("数据库测试异常：{}", e.getMessage());
             return cause == null ? e.getMessage() : cause.getLocalizedMessage();
+        }finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if (dataSource != null) {
+                dataSource.close();
+            }
         }
+        return "1";
     }
 
     @Override
@@ -63,11 +77,12 @@ public abstract class DefaultDataSourceDriver implements DataSourceDriver {
         dataSource.setJdbcUrl(ds.getJdbcUrl());
         
         if (isTest) {
+            dataSource.setMinimumIdle(0);
             dataSource.setInitializationFailTimeout(1);
             dataSource.setConnectionTimeout(2000);
         } else {
             dataSource.setMinimumIdle(2);
-            dataSource.setMaximumPoolSize(20);
+            dataSource.setMaximumPoolSize(10);
             dataSource.setMaxLifetime(900000);
             dataSource.setIdleTimeout(300000);
             dataSource.setConnectionTimeout(10000);
