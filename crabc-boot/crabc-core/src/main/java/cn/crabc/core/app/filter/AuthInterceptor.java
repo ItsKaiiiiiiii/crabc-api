@@ -61,7 +61,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         List<BaseApp> appList = apiInfo.getAppList();
 
         boolean auth = switch (apiInfo.getAuthType().toUpperCase()) {
-            case "CODE" -> checkAppCode(request, appList);
+            case "APP_CODE" -> checkAppCode(request, appList);
             case "APP_SECRET" -> checkHmacSHA256(request, appList);
             default -> true;
         };
