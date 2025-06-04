@@ -31,7 +31,7 @@ cn.crabc
 ~~~ 
 
 ## 版本说明
-dev分支框架SpringBoot已升级至3.4，jdk需17及以上版本 \
+dev分支框架SpringBoot已升级至3.5，jdk需17及以上版本 \
 2.x分支框架SpringBoot还是2.x
 
 ## 运行启动
@@ -61,7 +61,7 @@ gitee: https://gitee.com/linebyte/crabc
 <dependency>
     <groupId>cn.crabc</groupId>
     <artifactId>crabc-spring-boot-starter</artifactId>
-    <version>3.3.2</version>
+    <version>3.5.0</version>
 </dependency>
 ```
 在程序启动类中添加下面注解
