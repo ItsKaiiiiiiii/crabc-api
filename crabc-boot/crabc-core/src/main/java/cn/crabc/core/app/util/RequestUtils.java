@@ -81,7 +81,27 @@ public class RequestUtils {
     public static String getAppCode(HttpServletRequest req) {
         String appCode = req.getHeader("appCode");
         if (appCode == null) {
-            String[] codeNames = new String[]{"appCode","AppCode", "appcode", "app_code"};
+            String[] codeNames = new String[]{"appCode","AppCode", "app_code"};
+            for(String codeName : codeNames) {
+                appCode = req.getParameter(codeName);
+                if (appCode != null) {
+                    break;
+                }
+            }
+        }
+        return appCode;
+    }
+
+    /**
+     * 获取请求头和URL参数中的认证AppKey
+     *
+     * @param req
+     * @return
+     */
+    public static String getAppKey(HttpServletRequest req) {
+        String appCode = req.getHeader("appKey");
+        if (appCode == null) {
+            String[] codeNames = new String[]{"appKey","AppKey", "app_key"};
             for(String codeName : codeNames) {
                 appCode = req.getParameter(codeName);
                 if (appCode != null) {

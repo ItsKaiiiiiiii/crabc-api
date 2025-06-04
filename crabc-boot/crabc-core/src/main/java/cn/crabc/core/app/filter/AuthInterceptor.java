@@ -62,6 +62,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         boolean auth = switch (apiInfo.getAuthType().toUpperCase()) {
             case "APP_CODE" -> checkAppCode(request, appList);
+            case "APP_KEY" -> checkAppKey(request, appList);
             case "APP_SECRET" -> checkHmacSHA256(request, appList);
             default -> true;
         };
@@ -122,7 +123,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * 验证接口访问权限
+     * 验证接口访问权限APP_CODE
      *
      * @param request
      * @param appList
@@ -134,6 +135,20 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
         return appList.stream().anyMatch(app -> app.getAppCode().equals(appCode));
+    }
+    /**
+     * 验证接口访问权限APP_KEY
+     *
+     * @param request
+     * @param appList
+     * @return
+     */
+    private boolean checkAppKey(HttpServletRequest request, List<BaseApp> appList) {
+        String appKey = RequestUtils.getAppKey(request);
+        if (appKey == null || appKey.isEmpty()) {
+            return false;
+        }
+        return appList.stream().anyMatch(app -> app.getAppKey().equals(appKey));
     }
 
     /**
