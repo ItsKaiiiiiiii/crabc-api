@@ -25,7 +25,7 @@ public class JdbcDataSourceRouter extends AbstractRoutingDataSource {
     /**
      * 当前线程数据源KEY
      */
-    private static final ThreadLocal<String> DATA_SOURCE_KEY = new ThreadLocal<>();
+    private static final ThreadLocal<String> DATA_SOURCE_KEY = new InheritableThreadLocal<>();
 
     /**
      * 获取数据源key
