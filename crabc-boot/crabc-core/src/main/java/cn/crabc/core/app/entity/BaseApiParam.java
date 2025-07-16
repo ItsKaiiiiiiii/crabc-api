@@ -70,7 +70,7 @@ public class BaseApiParam {
     /**
      * 数据源Id
      */
-    private String datasourceId;
+    private Integer datasourceId;
 
     /**
      * schema

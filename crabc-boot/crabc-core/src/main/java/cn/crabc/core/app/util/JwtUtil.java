@@ -17,7 +17,7 @@ import java.util.UUID;
 public class JwtUtil {
     private static String header = "Authorization";
     // 令牌秘钥
-    private static String secret = "crabcjfakdjfaldjflkadjlafjaldkjlaflkalk";
+    private static String secret = "KLSDJIWKD27JKZDFJALKJKD82KM90DL1NWMD";
     public static final String TOKEN_PREFIX = "bearer ";
 
     /**

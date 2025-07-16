@@ -93,7 +93,7 @@ public class BaseApiInfo extends BaseEntity {
     /**
      * 数据源Id
      */
-    private String datasourceId;
+    private Integer datasourceId;
 
     /**
      * 数据源名称

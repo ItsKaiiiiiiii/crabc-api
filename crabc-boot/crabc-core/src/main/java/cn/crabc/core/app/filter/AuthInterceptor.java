@@ -63,7 +63,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         boolean auth = switch (apiInfo.getAuthType().toUpperCase()) {
             case "APP_CODE" -> checkAppCode(request, appList);
             case "APP_KEY" -> checkAppKey(request, appList);
-            case "APP_SECRET" -> checkHmacSHA256(request, appList);
+            case "APP_SECRET" -> checkSM3(request, appList);
             default -> true;
         };
 
@@ -159,7 +159,7 @@ public class AuthInterceptor implements HandlerInterceptor {
      * @return
      * @throws Exception
      */
-    public boolean checkHmacSHA256(HttpServletRequest request, List<BaseApp> appList) {
+    public boolean checkSM3(HttpServletRequest request, List<BaseApp> appList) {
         // 认证参数
         String sign = Optional.ofNullable(request.getHeader("sign")).orElse(request.getParameter("sign"));
         String timeStamp = Optional.ofNullable(request.getHeader("timestamp")).orElse(request.getParameter("timestamp"));

@@ -140,7 +140,7 @@ public class ApiServiceController {
      * 执行API调用
      */
     private Result executeApi(ApiInfoDTO api, Map<String, Object> params) {
-        Object data = baseDataService.execute(api.getDatasourceId(), api.getDatasourceType(), 
+        Object data = baseDataService.execute(api.getDatasourceId().toString(), api.getDatasourceType(),
                                             api.getSchemaName(), api.getSqlScript(), params);
                                             
         if (ResultTypeEnum.ONE.getName().equals(api.getResultType()) && data instanceof List) {

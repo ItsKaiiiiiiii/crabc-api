@@ -33,7 +33,7 @@ public class BaseApiSql extends BaseEntity {
     /**
      * 数据源Id
      */
-    private String datasourceId;
+    private Integer datasourceId;
 
     /**
      * schema
