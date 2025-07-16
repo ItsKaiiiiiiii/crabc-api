@@ -6,13 +6,13 @@ crabc由create + abc 组合而来，意在为项目系统构建的通用的接�
 **crabc** 是低代码接口开发平台，企业数据服务平台，深度整合SpringBoot和Mybatis实现动态数据源和动态SQL。
 支持接入（mysql、oracle、postgresql、sqlserver、达梦、TiDB、es和mongodb）等SQL或/NoSQL数据源，
 在线可视化编写SQL后即可快速生成接口对外提供服务，接口一键上下线。减少通用接口的SQL编写，让开发人员专注更复杂的业务逻辑实现。
-支持Mybatis中if等标签语法、数据脱敏、数据转换等功能，集成微服务网关支持接入第三方接口、权限认证、限流、缓存、告警监控和统一日志等一站式API数据服务。
+支持Mybatis中if等标签语法、数据脱敏、数据转换、国密加密等功能，可集成微服务网关支持接入第三方接口、权限认证、限流、缓存、告警监控和统一日志等一站式API数据服务。
 
 ![img.png](doc/home.png)
 ## 功能
 - **工作台**：可视化编写SQL快速的对外发布成API接口,支持多SQL同时执行、Mybatis标签语法，实现动态SQL和动态标签
 - **数据源管理**：动态加载数据库，支持多种SQL/NoSQL数据库。
-- **应用列表**：Code认证、签名认证的应用创建管理以及对API调用在线授权。
+- **应用列表**：AppKey认证、签名认证的应用创建管理以及对API调用在线授权。
 - **接口列表**：查看开发中和已发布的API接口，可进行上下线管理，编辑升级等
 - **接口日志**：查看发布的接口被调用日志列表和请求详情。
 
@@ -74,7 +74,7 @@ gitee: https://gitee.com/linebyte/crabc
 先执行db/dml.sql脚本，创建库表和初始化数据，建议mysql 8.0+版本
 ```
 docker pull crabc/crabc-admin:latest
-docker run -p 9377:9377 -e DB_URL='jdbc:mysql://localhost:3306/crabc' -e DB_USER=root -e DB_PWD=root -d --name crabc-admin crabc/crabc-admin:latest
+docker run -p 9377:9377 -e DB_URL=jdbc:mysql://localhost:3306/crabc -e DB_USER=root -e DB_PWD=root -d --name crabc-admin crabc/crabc-admin:latest
 ```
 访问地址：http://127.0.0.1:9377
 账号密码：admin/admin123

@@ -1,5 +1,5 @@
 FROM openjdk:17-jdk-alpine
-LABEL version="2.3.2"
+LABEL version="3.5.0"
 
 COPY crabc-admin.jar /app.jar
 ENV LANG="en_US.UTF-8"
