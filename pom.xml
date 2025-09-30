@@ -17,16 +17,16 @@
 
     <properties>
         <!-- crabc 版本-->
-        <revision>3.5.0</revision>
-        <java.version>17</java.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <revision>3.5.1</revision>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-boot.version>3.5.0</spring-boot.version>
-        <spring-boot.mybatis.version>3.0.4</spring-boot.mybatis.version>
-        <mybatis-plus.version>3.5.12</mybatis-plus.version>
+        <spring-boot.version>3.5.6</spring-boot.version>
+        <spring-boot.mybatis.version>3.0.5</spring-boot.mybatis.version>
+        <mybatis-plus.version>3.5.14</mybatis-plus.version>
         <pagehelper.boot.version>2.1.0</pagehelper.boot.version>
-        <spring-boot.druid.version>1.2.24</spring-boot.druid.version>
+        <spring-boot.druid.version>1.2.25</spring-boot.druid.version>
         <fastjson.version>2.0.49</fastjson.version>
         <jwt.version>0.12.5</jwt.version>
         <commons-pool2.version>2.12.0</commons-pool2.version>
