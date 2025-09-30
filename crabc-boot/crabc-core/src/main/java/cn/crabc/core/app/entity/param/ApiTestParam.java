@@ -17,6 +17,8 @@ public class ApiTestParam {
 
     private String sqlParams;
 
+    private Integer pageSetup;
+
     private String resultType;
 
     private Object requestParams;

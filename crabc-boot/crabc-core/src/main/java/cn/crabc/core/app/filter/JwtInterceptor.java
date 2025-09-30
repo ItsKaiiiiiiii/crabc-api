@@ -18,9 +18,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
  */
 public class JwtInterceptor implements HandlerInterceptor {
 
-    @Value("${crabc.token.expireTime:36000}")
-    private long expireTime;
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         // 放行OPTIONS请求
@@ -39,14 +36,6 @@ public class JwtInterceptor implements HandlerInterceptor {
         if (claims == null) {
             throw new CustomException(ErrorStatusEnum.JWT_LOGIN_EXPIRE.getCode(), ErrorStatusEnum.JWT_UN_AUTH.getMassage());
         }
-        
-        // 校验token是否过期
-        long expireTime = Long.parseLong(claims.get("expireTime").toString());
-        long currentTime = System.currentTimeMillis();
-        if ((currentTime - expireTime) / 1000 > this.expireTime) {
-            throw new CustomException(ErrorStatusEnum.JWT_LOGIN_EXPIRE.getCode(), ErrorStatusEnum.JWT_LOGIN_EXPIRE.getMassage());
-        }
-        
         // 设置用户信息到线程上下文
         UserThreadLocal.set(claims);
         return true;

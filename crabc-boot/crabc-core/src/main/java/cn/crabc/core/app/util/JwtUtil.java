@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -19,6 +20,7 @@ public class JwtUtil {
     // 令牌秘钥
     private static String secret = "KLSDJIWKD27JKZDFJALKJKD82KM90DL1NWMD";
     public static final String TOKEN_PREFIX = "bearer ";
+    public static long expirationTime = 1000L * 60 * 60 * 8;  // 8小时过期
 
     /**
      * 创建令牌
@@ -27,7 +29,6 @@ public class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("userName", userName);
-        claims.put("expireTime", System.currentTimeMillis());
         return createToken(claims);
     }
 
@@ -36,6 +37,8 @@ public class JwtUtil {
      */
     public static String createToken(Map<String, Object> claims) {
         String uuid = UUID.randomUUID().toString();
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + expirationTime);
         try {
             return Jwts.builder()
                     .header()
@@ -43,7 +46,7 @@ public class JwtUtil {
                     .add("alg", "HS256")
                     .and()
                     .claims(claims)
-                    // 令牌ID
+                    .expiration(expiration)
                     .id(uuid)
                     .signWith(Keys.hmacShaKeyFor(secret.getBytes()))
                     .compact();
