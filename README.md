@@ -92,6 +92,8 @@ docker run -p 9377:9377 -e DB_URL=jdbc:mysql://localhost:3306/crabc -e DB_USER=r
 ```
 java -jar crabc-admin.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/crabc --spring.datasource.username=root --spring.datasource.password=root 
 ```
+## 数据库脚本
+加群获取最新数据库脚本
 
 ## 企业版和开源版对比
 | 功能     |  社区版  | 企业版                                                                                                                         |
