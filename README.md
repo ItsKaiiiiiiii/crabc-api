@@ -95,6 +95,47 @@ java -jar crabc-admin.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/cr
 ## 数据库脚本
 加群获取最新数据库脚本
 
+## 效果截图
+### 接口开发
+![img.png](doc/sql.png)
+#### 接口属性
+![img.png](doc/detail.png)
+#### 请求参数
+![img.png](doc/param.png)
+#### 在线预览
+![img_2.png](doc/img_test.png)
+#### 接口列表
+![img.png](doc/api.png)
+#### 数据库类型
+![img.png](doc/db.png)
+### 限流熔断
+![img.png](doc/flow.png)
+
+## 交流群
+**进群前请先点【Star】谢谢**
+
+QQ群：748993036
+
+商用咨询加微信 (请备注crabc)
+
+![img.png](doc/img.png)
+
+## 产品使用登记
+以下为部分接入crabc-api的用户 ，<a href="https://gitee.com/linebyte/crabc/issues/IA98CA" target="_blank"> 点击进行登记</a>
+
+| 公司机构         |
+|:-------------|
+| 西部通信研究院      |
+| 青岛巴士科技有限公司   |
+| 阳光智维科技股份有限公司 |
+| 一步数据科技有限公司   |
+| 像素云图科技有限公司   |
+| 前景科技有限公司     |
+| 方寸图信息有限公司    |
+| 鹭栖技术信息公司     |
+| 循脉医疗科技有限公司   |
+| 云上贵州大数据有限公司  |
+
 ## 企业版和开源版对比
 | 功能     |  社区版  | 企业版                                                                                                                         |
 |--------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
@@ -122,43 +163,3 @@ java -jar crabc-admin.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/cr
 | IP控制   | 不支持                          | 支持                                                                                                                          |
 | 监控报表   | 支持                           | 支持                                                                                                                          |
 | 集群模式   | 不支持                          | 支持                                                                                                                          |
-## 效果截图
-### 接口开发
-![img.png](doc/sql.png)
-#### 接口属性
-![img.png](doc/detail.png)
-#### 请求参数
-![img.png](doc/param.png)
-#### 在线预览
-![img_2.png](doc/img_test.png)
-#### 接口列表 
-![img.png](doc/api.png) 
-#### 数据库类型
-![img.png](doc/db.png)
-### 限流熔断
-![img.png](doc/flow.png)
-
-## 产品使用登记
-以下为部分接入crabc-api的用户 ，<a href="https://gitee.com/linebyte/crabc/issues/IA98CA" target="_blank"> 点击进行登记</a>
-
-| 公司机构         |
-|:-------------|
-| 西部通信研究院      |
-| 青岛巴士科技有限公司   |
-| 阳光智维科技股份有限公司 |
-| 一步数据科技有限公司   |
-| 像素云图科技有限公司   |
-| 前景科技有限公司     |
-| 方寸图信息有限公司    |
-| 鹭栖技术信息公司     |
-| 循脉医疗科技有限公司   |
-| 云上贵州大数据有限公司  |
-
-## 交流群
-**进群前请先点【Star】谢谢**
-
-QQ群：748993036
-
-商用咨询加微信 (请备注crabc)
-
-![img.png](doc/img.png)
