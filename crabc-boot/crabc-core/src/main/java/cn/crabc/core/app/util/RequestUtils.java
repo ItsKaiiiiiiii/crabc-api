@@ -143,6 +143,9 @@ public class RequestUtils {
         if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
+        if ("0:0:0:0:0:0:0:1".equals(ip) || "localhost".equals(ip)) {
+            ip ="127.0.0.1";
+        }
         return ip == null ? "" : ip.trim();
     }
 

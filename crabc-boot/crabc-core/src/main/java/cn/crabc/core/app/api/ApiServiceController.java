@@ -8,6 +8,7 @@ import cn.crabc.core.app.util.ApiThreadLocal;
 import cn.crabc.core.app.util.Result;
 import cn.crabc.core.datasource.constant.BaseConstant;
 import cn.crabc.core.datasource.enums.ErrorStatusEnum;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,14 +35,16 @@ public class ApiServiceController {
      * @return
      */
     @RequestMapping(value = "/**", method = {RequestMethod.GET, RequestMethod.DELETE})
-    public Result getService(@RequestParam(required = false) Map<String, Object> paramMap) {
+    public Result getService(@RequestParam(required = false) Map<String, Object> paramMap, HttpServletResponse response) {
         ApiInfoDTO api = ApiThreadLocal.get();
         if (api == null) {
+            response.setStatus(400);
             return Result.error(ErrorStatusEnum.API_INVALID.getCode(), ErrorStatusEnum.API_INVALID.getMassage());
         }
         
         // 参数校验
         if (!validateParams(api, paramMap)) {
+            response.setStatus(400);
             return Result.error(ErrorStatusEnum.PARAM_NOT_FOUNT.getCode(), ErrorStatusEnum.PARAM_NOT_FOUNT.getMassage());
         }
 
@@ -56,9 +59,10 @@ public class ApiServiceController {
      * @return
      */
     @RequestMapping(value = "/**", method = {RequestMethod.POST, RequestMethod.PUT})
-    public Result postService(@RequestParam(required = false) Map<String, Object> paramMap, @RequestBody(required = false) Object body) {
+    public Result postService(@RequestParam(required = false) Map<String, Object> paramMap, @RequestBody(required = false) Object body, HttpServletResponse response) {
         ApiInfoDTO api = ApiThreadLocal.get();
         if (api == null) {
+            response.setStatus(400);
             return Result.error(ErrorStatusEnum.API_INVALID.getCode(), ErrorStatusEnum.API_INVALID.getMassage());
         }
 
@@ -67,6 +71,7 @@ public class ApiServiceController {
         
         // 参数校验
         if (!checkParams(api.getRequestParams(), mergedParams)) {
+            response.setStatus(400);
             return Result.error(ErrorStatusEnum.PARAM_NOT_FOUNT.getCode(), ErrorStatusEnum.PARAM_NOT_FOUNT.getMassage());
         }
 

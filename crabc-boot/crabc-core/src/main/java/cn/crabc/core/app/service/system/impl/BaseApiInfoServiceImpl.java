@@ -50,12 +50,7 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
     @Autowired
     @Qualifier("apiCache")
     Cache<String, Object> apiInfoCache;
-
-    @Scheduled(cron = "${crabc.corn.api:0 0/1 * * * ?}")
-    public void task() {
-        initApi();
-    }
-
+    
     @Override
     public void initApi() {
         updateCache(null);
@@ -71,7 +66,7 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
     @Override
     public List<ApiInfoDTO> getApiCache(Long apiId) {
         List<ApiInfoDTO> apiInfos = apiInfoMapper.selectApiDetail(apiId);
-        if (apiInfos.size() == 0) {
+        if (apiInfos.isEmpty()) {
             return apiInfos;
         }
         // 应用

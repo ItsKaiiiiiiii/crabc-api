@@ -33,8 +33,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 and request_status =#{result}
             </if>
             <if test="startTime !='' and endTime !=''">
-                and request_time &gt;=#{startTime}
-                and request_time &lt;=#{endTime}
+                and DATE_FORMAT(request_time,'%Y-%m-%d') &gt;=#{startTime}
+                and DATE_FORMAT(request_time,'%Y-%m-%d') &lt;=#{endTime}
             </if>
         </where>
         order by log_id desc
