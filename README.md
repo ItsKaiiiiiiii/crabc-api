@@ -3,7 +3,7 @@
 crabc由create + abc 组合而来，意在为项目系统构建的通用的接口底座。
 
 # 介绍
-**crabc** 是低代码接口开发平台，企业数据服务平台，深度整合SpringBoot和Mybatis实现动态数据源和动态SQL。
+**crabc** 是低代码接口开发平台，企业数据服务平台，深度整合SpringBoot和Mybatis实现动态数据源和动态SQL、函数和存储过程。
 支持接入（mysql、oracle、postgresql、sqlserver、达梦、TiDB、es和hive）等SQL或/NoSQL数据源，
 在线可视化编写SQL后即可快速生成接口对外提供服务，接口一键上下线。减少通用接口的SQL编写，让开发人员专注更复杂的业务逻辑实现。
 支持Mybatis中if等标签语法、数据脱敏、数据转换、国密加密、协同开发等功能，可集成微服务网关支持接入第三方接口、权限认证、限流、缓存、告警监控和统一日志等一站式API数据服务,
@@ -87,11 +87,11 @@ docker run -p 9377:9377 -e DB_URL=jdbc:mysql://localhost:3306/crabc -e DB_USER=r
 访问地址：http://127.0.0.1:9377
 账号密码：admin/admin123
 
-## Windows桌面运行
+_## Windows桌面运行
 先执行db/dml.sql脚本，创建库表和初始化数据，建议mysql 8.0+版本
 ```
 java -jar crabc-admin.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/crabc --spring.datasource.username=root --spring.datasource.password=root 
-```
+```_
 ## 数据库脚本
 加群获取最新数据库脚本
 
