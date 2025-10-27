@@ -59,6 +59,9 @@ github：https://github.com/pingapi/crabc-api
 已申请软件著作，开源版仅供个人学习使用 \
 企业版功能更强大，商用请加群联系\
 
+## 数据库脚本
+加群获取最新数据库脚本
+
 ## 源码地址
 github: https://github.com/pingapi/crabc-api \
 gitee: https://gitee.com/linebyte/crabc
@@ -91,9 +94,7 @@ _## Windows桌面运行
 先执行db/dml.sql脚本，创建库表和初始化数据，建议mysql 8.0+版本
 ```
 java -jar crabc-admin.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/crabc --spring.datasource.username=root --spring.datasource.password=root 
-```_
-## 数据库脚本
-加群获取最新数据库脚本
+```
 
 ## 效果截图
 ### 接口开发
