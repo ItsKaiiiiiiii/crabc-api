@@ -15,11 +15,9 @@
  */
 package cn.crabc.core.datasource.mapper;
 
-import org.apache.ibatis.annotations.InsertProvider;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.SelectProvider;
-import org.apache.ibatis.annotations.UpdateProvider;
+import org.apache.ibatis.annotations.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +35,8 @@ public interface BaseDataHandleMapper {
      * @return
      */
     @SelectProvider(type = BaseSelectProvider.class, method = "executeQuery")
-    List<Map<String, Object>> executeQuery(Map<String, Object> params);
+    @ResultType(LinkedHashMap.class)
+    List<LinkedHashMap<String, Object>> executeQuery(Map<String, Object> params);
 
     /**
      * 新增类SQL

@@ -26,10 +26,7 @@ import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class JdbcStatement implements StatementMapper {
@@ -57,7 +54,7 @@ public class JdbcStatement implements StatementMapper {
     @Override
     public PageInfo selectPage(String dataSourceId, String schema, String sql, Object params, int pageNum, int pageSize) {
         String execType = null;
-        List<Map<String, Object>> list = new ArrayList<>();
+        List<LinkedHashMap<String, Object>> list = new ArrayList<>();
         try {
             Map<String, Object> paramsMap = setParams(dataSourceId, schema, sql, params);
             execType = (String)paramsMap.get(BaseConstant.BASE_API_EXEC_TYPE);
@@ -78,7 +75,7 @@ public class JdbcStatement implements StatementMapper {
             if (execType == null) {
                 throw new CustomException(51000, errorMsg);
             } else {
-                Map<String, Object> errorMap = new HashMap<>();
+                LinkedHashMap<String, Object> errorMap = new LinkedHashMap<>();
                 errorMap.put("执行异常", "SQL执行失败：" + errorMsg);
                 list.add(errorMap);
             }
