@@ -72,7 +72,7 @@ gitee: https://gitee.com/linebyte/crabc
 <dependency>
     <groupId>cn.crabc</groupId>
     <artifactId>crabc-spring-boot-starter</artifactId>
-    <version>3.5.2</version>
+    <version>3.5.3</version>
 </dependency>
 ```
 在程序启动类中添加下面注解
@@ -84,8 +84,7 @@ gitee: https://gitee.com/linebyte/crabc
 ## Docker启动
 先执行db/dml.sql脚本，创建库表和初始化数据，建议mysql 8.0+版本
 ```
-docker pull crabc/crabc-admin:latest
-docker run -p 9377:9377 -e DB_URL=jdbc:mysql://localhost:3306/crabc -e DB_USER=root -e DB_PWD=root -d --name crabc-admin crabc/crabc-admin:latest
+docker run -p 9377:9377 -e DB_URL=jdbc:mysql://localhost:3306/crabc -e DB_USER=root -e DB_PWD=root -d --name crabc-api crabc/crabc-api:latest
 ```
 访问地址：http://127.0.0.1:9377
 账号密码：admin/admin123
@@ -93,7 +92,7 @@ docker run -p 9377:9377 -e DB_URL=jdbc:mysql://localhost:3306/crabc -e DB_USER=r
 _## Windows桌面运行
 先执行db/dml.sql脚本，创建库表和初始化数据，建议mysql 8.0+版本
 ```
-java -jar crabc-admin.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/crabc --spring.datasource.username=root --spring.datasource.password=root 
+java -jar crabc-api.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/crabc --spring.datasource.username=root --spring.datasource.password=root 
 ```
 
 ## 效果截图
