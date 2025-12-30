@@ -26,10 +26,6 @@ public class DataSourceManager {
     public static final Map<String, DataSource> DATA_SOURCE_POOL_JDBC = new ConcurrentHashMap<>();
 
     /**
-     * 支持的关系型数据源类型
-     */
-    private static final List<String> JDBC_DATA_SOURCE_TYPE = Arrays.asList("mysql", "mariadb", "oracle", "sqlserver", "postgresql","sybase", "db2","doris", "sqlite", "tidb", "opengauss", "oceanbase", "polardb", "tdsql", "dm", "gbase", "hive2");
-    /**
      * 默认数据源驱动实现
      */
     private DataSourceDriver defaultDriver;
@@ -55,12 +51,7 @@ public class DataSourceManager {
      * @return
      */
     public String test(BaseDataSource dataSource) {
-        String datasourceType = dataSource.getDatasourceType();
-        if (JDBC_DATA_SOURCE_TYPE.contains(datasourceType)) {
-            return defaultDriver.test(dataSource);
-        } else {
-            throw new CustomException(51001, "暂不支持" + datasourceType + "数据源类型！");
-        }
+        return defaultDriver.test(dataSource);
     }
 
 

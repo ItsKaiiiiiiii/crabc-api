@@ -64,7 +64,7 @@ public class JdbcMetaData implements MetaDataMapper {
         String[] tableType = {"TABLE", "VIEW"};
         try (Connection connection = JdbcDataSourceRouter.getDataSource(dataSourceId).getConnection()) {
             // 获取表和视图
-            try (ResultSet resultSet = connection.getMetaData().getTables(catalog, schema, null, tableType)) {
+            try (ResultSet resultSet = connection.getMetaData().getTables(catalog, schema, "%", tableType)) {
                 while (resultSet.next()) {
                     tables.add(buildTable(resultSet, schema));
                 }

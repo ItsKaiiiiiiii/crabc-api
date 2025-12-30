@@ -123,15 +123,8 @@ public abstract class DefaultDataSourceDriver implements DataSourceDriver {
             case "oceanbase":
                 dataSource.setDriverClassName(JdbcConstants.OCEANBASE_DRIVER2);
                 break;
-            default:
-                if (datasourceType.startsWith("gbase8")) {
-                    dataSource.setDriverClassName(JdbcConstants.GBASE_DRIVER);
-                } else if (datasourceType.startsWith("kingbase8")) {
-                    dataSource.setDriverClassName(JdbcConstants.KINGBASE8_DRIVER);
-                } else if (dataSource.getJdbcUrl().toLowerCase().startsWith("jdbc:jtds:")) {
-                    dataSource.setConnectionTestQuery("SELECT 1");
-                    dataSource.setDriverClassName("net.sourceforge.jtds.jdbc.Driver");
-                }
+            case "clickhouse":
+                dataSource.setDriverClassName(JdbcConstants.CLICKHOUSE_DRIVER_NEW);
         }
     }
 }
