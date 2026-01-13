@@ -84,8 +84,13 @@ gitee: https://gitee.com/linebyte/crabc
 
 ## Docker启动
 先执行db/dml.sql脚本，创建库表和初始化数据，建议mysql 8.0+版本
+X86/AMD架构
 ```
 docker run -p 9377:9377 -e DB_URL=jdbc:mysql://localhost:3306/crabc -e DB_USER=root -e DB_PWD=root -d --name crabc-api crabc/crabc-api:latest
+```
+ARM架构
+```
+docker run -p 9377:9377 -e DB_URL=jdbc:mysql://localhost:3306/crabc -e DB_USER=root -e DB_PWD=root -d --name crabc-admin crabc/crabc-admin:latest
 ```
 访问地址：http://127.0.0.1:9377
 账号密码：admin/admin123
