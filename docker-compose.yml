@@ -29,6 +29,5 @@ services:
       - db_url=jdbc:mysql://crabcdb:3306/crabc
       - db_user=admindb
       - db_pwd=admin123
-
 networks:
   crabc_network:
