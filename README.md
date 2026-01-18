@@ -34,6 +34,9 @@ cn.crabc
 ├──pom.xml                   // 依赖
 ~~~ 
 
+## 数据库脚本
+数据库脚本文件可加QQ群文件中获取
+
 ## 版本说明
 dev分支框架SpringBoot已升级至3.5，jdk需17及以上版本 \
 2.x分支框架SpringBoot还是2.x
@@ -59,9 +62,6 @@ github：https://github.com/pingapi/crabc-api
 ## 商用授权
 已申请软件著作，开源版仅供个人学习使用 \
 企业版功能更强大，商用请加群联系\
-
-## 数据库脚本
-加群获取最新数据库脚本
 
 ## 源码地址
 github: https://github.com/pingapi/crabc-api \
