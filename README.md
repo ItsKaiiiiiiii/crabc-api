@@ -107,16 +107,16 @@ java -jar crabc-api.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/crab
 ![img.png](doc/sql.png)
 #### 接口属性
 ![img.png](doc/detail.png)
-#### 请求参数
+#### 返回参数
 ![img.png](doc/param.png)
 #### 在线预览
 ![img_2.png](doc/img_test.png)
 #### 接口列表
-![img.png](doc/api.png)
+![img.png](doc/apis.png)
+#### 日志管理
+![img.png](doc/logs.png)
 #### 数据库类型
 ![img.png](doc/db.png)
-### 限流熔断
-![img.png](doc/flow.png)
 
 ## 交流群
 **进群前请先点【Star】谢谢**
