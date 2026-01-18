@@ -11,16 +11,16 @@
     <packaging>pom</packaging>
     <description>接口开发平台</description>
     <modules>
-        <module>crabc-boot</module>
-        <module>crabc-spring-boot-starter</module>
+        <module>crabc-api</module>
+<!--        <module>crabc-spring-boot-starter</module>-->
     </modules>
 
     <properties>
         <!-- crabc 版本-->
-        <revision>3.5.3</revision>
-        <java.version>21</java.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <revision>4.0.0</revision>
+        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>3.5.9</spring-boot.version>
         <spring-boot.mybatis.version>3.0.5</spring-boot.mybatis.version>

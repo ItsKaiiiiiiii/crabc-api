@@ -73,7 +73,7 @@ gitee: https://gitee.com/linebyte/crabc
 <dependency>
     <groupId>cn.crabc</groupId>
     <artifactId>crabc-spring-boot-starter</artifactId>
-    <version>3.5.3</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 在程序启动类中添加下面注解
@@ -84,6 +84,7 @@ gitee: https://gitee.com/linebyte/crabc
 
 ## Docker启动
 先执行db/dml.sql脚本，创建库表和初始化数据，建议mysql 8.0+版本
+
 X86/AMD架构
 ```
 docker run -p 9377:9377 -e DB_URL=jdbc:mysql://localhost:3306/crabc -e DB_USER=root -e DB_PWD=root -d --name crabc-api crabc/crabc-api:latest
