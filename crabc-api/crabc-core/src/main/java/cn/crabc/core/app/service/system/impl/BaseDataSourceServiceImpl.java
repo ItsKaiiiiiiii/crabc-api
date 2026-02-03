@@ -61,7 +61,7 @@ public class BaseDataSourceServiceImpl implements IBaseDataSourceService {
     public void init() {
         List<BaseDataSource> baseDataSources = this.getList();
         for (BaseDataSource dataSource : baseDataSources) {
-            DataSource ds = DataSourceManager.DATA_SOURCE_POOL_JDBC.get(dataSource.getDatasourceId());
+            DataSource ds = DataSourceManager.DATA_SOURCE_POOL_JDBC.get(dataSource.getDatasourceId().toString());
             try {
                 String jdbcUrl = null;
                 String username = null;

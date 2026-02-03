@@ -50,6 +50,7 @@ buildNumber.properties
 .settings
 bin/
 logs/
+db/
 .classpath
 
 
