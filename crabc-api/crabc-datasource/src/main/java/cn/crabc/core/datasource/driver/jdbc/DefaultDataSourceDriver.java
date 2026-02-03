@@ -90,7 +90,6 @@ public abstract class DefaultDataSourceDriver implements DataSourceDriver {
         } else {
             // 初始化失败，立即关闭新数据源，不添加到路由池
             dataSource.close();
-            throw new RuntimeException("数据源初始化失败，连接验证未通过");
         }
     }
 
