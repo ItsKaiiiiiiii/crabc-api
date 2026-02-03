@@ -55,6 +55,7 @@ public class JdbcStatement implements StatementMapper {
     public PageInfo selectPage(String dataSourceId, String schema, String sql, Object params, int pageNum, int pageSize) {
         String execType = null;
         List<LinkedHashMap<String, Object>> list = new ArrayList<>();
+        boolean pageHelperStarted = false;
         try {
             Map<String, Object> paramsMap = setParams(dataSourceId, schema, sql, params);
             execType = (String)paramsMap.get(BaseConstant.BASE_API_EXEC_TYPE);
@@ -64,13 +65,14 @@ public class JdbcStatement implements StatementMapper {
             
             if (pageCount != 0 && !checkPage(sql)) {
                 PageHelper.startPage(pageNum, pageSize);
+                pageHelperStarted = true;
             }
             list = baseMapper.executeQuery(paramsMap);
 
         } catch (Exception e) {
             Throwable cause = e.getCause();
             String errorMsg = cause == null ? e.getMessage() : cause.getMessage();
-            log.error("SQL执行失败，请检查SQL是否正常: {}", errorMsg);
+            log.error("SQL执行失败，请检查SQL是否正常: {}", errorMsg, e);
             
             if (execType == null) {
                 throw new CustomException(51000, errorMsg);
@@ -80,7 +82,11 @@ public class JdbcStatement implements StatementMapper {
                 list.add(errorMap);
             }
         } finally {
-            PageHelper.clearPage();
+            // 确保PageHelper被正确清理
+            if (pageHelperStarted) {
+                PageHelper.clearPage();
+            }
+            // 清理ThreadLocal，释放数据源key引用
             JdbcDataSourceRouter.remove();
         }
         return new PageInfo<>(list, pageNum, pageSize);

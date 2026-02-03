@@ -61,24 +61,36 @@ public abstract class DefaultDataSourceDriver implements DataSourceDriver {
                                  JdbcDataSourceRouter.getDataSource(datasourceId) : null;
 
         HikariDataSource dataSource = createHikariDataSource(ds, false);
-        JdbcDataSourceRouter.setDataSource(datasourceId, dataSource);
+        
         // 连接池预热
+        boolean initSuccess = false;
         try (Connection conn = dataSource.getConnection()) {
             if (conn.isValid(1)) {
                 log.debug("数据源初始化成功.");
+                initSuccess = true;
             } else {
                 log.error("数据源初始化失败.");
             }
         } catch (SQLException e) {
             log.error("Failed to warm up DataSource. Shutting down.", e);
-            dataSource.close(); // 初始化失败，及时释放资源
         }
-        if (oldDataSource != null){
-            if (oldDataSource instanceof DruidDataSource) {
-                ((DruidDataSource) oldDataSource).close();
-            } else if (oldDataSource instanceof HikariDataSource) {
-                ((HikariDataSource) oldDataSource).close();
+        
+        // 仅在初始化成功时才添加到路由池
+        if (initSuccess) {
+            JdbcDataSourceRouter.setDataSource(datasourceId, dataSource);
+            
+            // 关闭旧数据源
+            if (oldDataSource != null){
+                if (oldDataSource instanceof DruidDataSource) {
+                    ((DruidDataSource) oldDataSource).close();
+                } else if (oldDataSource instanceof HikariDataSource) {
+                    ((HikariDataSource) oldDataSource).close();
+                }
             }
+        } else {
+            // 初始化失败，立即关闭新数据源，不添加到路由池
+            dataSource.close();
+            throw new RuntimeException("数据源初始化失败，连接验证未通过");
         }
     }
 
@@ -115,15 +127,32 @@ public abstract class DefaultDataSourceDriver implements DataSourceDriver {
             }
             if (ds.getIdleTimeout() != null) {
                 dataSource.setIdleTimeout(ds.getIdleTimeout());
+            }else{
+                // 设置空闲连接超时时间，默认10分钟
+                dataSource.setIdleTimeout(TimeUnit.MINUTES.toMillis(10L));
             }
             if (ds.getConnectTimeout() != null) {
                 dataSource.setConnectionTimeout(ds.getConnectTimeout());
+            }else{
+                // 设置连接超时时间，默认30秒
+                dataSource.setConnectionTimeout(TimeUnit.SECONDS.toMillis(30L));
             }
             if (ds.getKeepaliveTime() != null && ds.getKeepaliveTime() != 0) {
                 dataSource.setKeepaliveTime(ds.getKeepaliveTime());
             }else{
                 dataSource.setKeepaliveTime(TimeUnit.MINUTES.toMillis(2L));
             }
+            dataSource.setLeakDetectionThreshold(TimeUnit.MINUTES.toMillis(2L));
+
+            if ("oracle".equalsIgnoreCase(ds.getDatasourceType())) {
+                // Oracle连接测试查询
+                dataSource.setConnectionTestQuery("SELECT 1 FROM DUAL");
+                // 设置连接初始化SQL，确保连接可用
+                dataSource.setConnectionInitSql("SELECT 1 FROM DUAL");
+            }
+            
+            // 自动提交设置
+            dataSource.setAutoCommit(true);
         }
         
         setDriverClass(dataSource, ds.getDatasourceType());

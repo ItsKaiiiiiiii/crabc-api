@@ -56,7 +56,10 @@ public class DataSourceConfig {
         dataSource.setTestWhileIdle(true);
         dataSource.setTestOnBorrow(false);
         dataSource.setTestOnReturn(false);
-        dataSource.setTestOnReturn(false);
+        // 连接泄漏检测配置
+        dataSource.setRemoveAbandoned(true);
+        dataSource.setRemoveAbandonedTimeout(300);
+        dataSource.setLogAbandoned(true);
         JdbcDataSourceRouter dynamic = new JdbcDataSourceRouter();
         dynamic.setTargetDataSources(new HashMap<>());
         // 设置默认数据源
