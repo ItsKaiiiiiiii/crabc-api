@@ -17,7 +17,7 @@
 
     <properties>
         <!-- crabc 版本-->
-        <revision>4.0.0</revision>
+        <revision>4.0.1</revision>
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
