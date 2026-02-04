@@ -40,6 +40,8 @@ public class BaseApiSql extends BaseEntity {
      */
     private String schemaName;
 
+    private String tableName;
+
     /**
      * 数据源类型
      */

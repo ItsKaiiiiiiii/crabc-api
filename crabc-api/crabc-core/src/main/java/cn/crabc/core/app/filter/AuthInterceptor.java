@@ -3,6 +3,7 @@ package cn.crabc.core.app.filter;
 import cn.crabc.core.app.entity.BaseApiLog;
 import cn.crabc.core.app.entity.BaseApp;
 import cn.crabc.core.app.entity.dto.ApiInfoDTO;
+import cn.crabc.core.app.service.system.IBaseApiInfoService;
 import cn.crabc.core.app.service.system.IBaseApiLogService;
 import cn.crabc.core.app.util.ApiThreadLocal;
 import cn.crabc.core.app.util.RequestUtils;
@@ -40,25 +41,30 @@ public class AuthInterceptor implements HandlerInterceptor {
     private static final String API_PRE = "/api/web/";
     @Autowired
     private IBaseApiLogService iBaseApiLogService;
+    @Autowired
+    private IBaseApiInfoService iBaseApiInfoService;
     @Value("${crabc.auth.expiresTime:10}")
     private Integer expiresTime;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
     @Qualifier("apiCache")
-    private Cache<String, Object> apiCache;
+    private Cache<String, ApiInfoDTO> apiCache;
 
+    private ApiInfoDTO getApiData(String key) {
+        String[] split = key.split("_");
+        return iBaseApiInfoService.getApiInfoCache(split[0], split[1]);
+    }
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        Object apiData = apiCache.getIfPresent(method + "_" + path.replace(API_PRE, ""));
-        if (apiData == null) {
+        ApiInfoDTO apiInfo = apiCache.get(method + "_" + path.replace(API_PRE, ""), this::getApiData);
+        if (apiInfo == null) {
             setErrorResponse(request, response,ErrorStatusEnum.API_INVALID.getCode(),ErrorStatusEnum.API_INVALID.getMassage());
             return false;
         }
-        ApiInfoDTO apiInfo = (ApiInfoDTO) apiData;
         if (apiInfo.getEnabled() == 0) {
             setErrorResponse(request, response,ErrorStatusEnum.API_OFFLINE.getCode(),ErrorStatusEnum.API_OFFLINE.getMassage());
             return false;

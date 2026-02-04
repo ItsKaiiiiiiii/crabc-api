@@ -1,5 +1,6 @@
 package cn.crabc.core.app.config;
 
+import cn.crabc.core.app.entity.dto.ApiInfoDTO;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.CacheManager;
@@ -28,9 +29,9 @@ public class CacheConfig {
      * @return
      */
     @Bean("apiCache")
-    public Cache<String, Object> apiCaffeine() {
+    public Cache<String, ApiInfoDTO> apiCaffeine() {
         return Caffeine.newBuilder()
-                .expireAfterAccess(10, TimeUnit.HOURS)
+                .expireAfterAccess(1, TimeUnit.MINUTES)
                 .build();
     }
 

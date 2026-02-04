@@ -75,6 +75,13 @@ public interface BaseApiInfoMapper {
     List<ApiInfoDTO>  selectApiDetail(@Param("apiId") Long apiId);
 
     /**
+     * 根据apiId查询信息
+     * @param
+     * @return
+     */
+    ApiInfoDTO getApiDetail(@Param("method") String method, @Param("apiPath") String apiPath);
+
+    /**
      * 插入API
      *
      * @param apiInfo

@@ -71,8 +71,6 @@ public class BaseApiInfoVO extends BaseEntity {
     private Integer pageSetup;
 
     private String sqlScript;
-
-    private String showSqlScript;
     /**
      * 发布时间
      */

@@ -35,9 +35,6 @@ public class CommonController {
     public Result detail(Long apiId) {
         Integer applyCount = 1;
         BaseApiInfoVO apiDetail = apiInfoService.getApiDetail(apiId);
-        if ("0".equals(apiDetail.getShowSqlScript())){
-            apiDetail.setSqlScript("***");
-        }
         apiDetail.setApplyed(applyCount);
         return Result.success(apiDetail);
     }

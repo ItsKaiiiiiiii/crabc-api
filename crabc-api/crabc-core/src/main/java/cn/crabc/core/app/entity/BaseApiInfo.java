@@ -81,11 +81,6 @@ public class BaseApiInfo extends BaseEntity {
     private String sqlScript;
 
     /**
-     * 是否显示脚本1/0
-     */
-    private String showSqlScript;
-
-    /**
      * 分页设置，不分页：0、只分页：page、分页并统计：pageCount
      */
     private Integer pageSetup;
@@ -104,6 +99,8 @@ public class BaseApiInfo extends BaseEntity {
      * schema
      */
     private String schemaName;
+    // 表名
+    private String tableName;
 
     /**
      * 数据源类型

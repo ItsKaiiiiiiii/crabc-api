@@ -23,7 +23,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             i.update_by,
             i.update_time,
             i.release_time,
-            i.show_sql_script,
             g.group_name
         FROM
             base_api_info i
@@ -90,7 +89,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             remarks,
             version,
             page_setup,
-            show_sql_script,
             datasource_id,
             datasource_type,
             schema_name,
@@ -104,6 +102,33 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <if test="apiId != null">
             and api_id =#{apiId}
         </if>
+    </select>
+
+    <select id="getApiDetail" resultType="cn.crabc.core.app.entity.dto.ApiInfoDTO">
+        SELECT
+            api_id,
+            api_name,
+            api_path,
+            api_type,
+            api_method,
+            auth_type,
+            api_status,
+            enabled,
+            group_id,
+            tenant_id,
+            remarks,
+            version,
+            page_setup,
+            datasource_id,
+            datasource_type,
+            schema_name,
+            sql_script,
+            sql_type,
+            result_type
+        FROM
+        base_api_info
+        WHERE
+        parent_id = 0 AND api_status ='release' and api_path =#{apiPath} and api_method =#{method}
     </select>
 
     <select id="selectApiById" resultType="cn.crabc.core.app.entity.BaseApiInfo">
@@ -127,8 +152,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             datasource_id,
             datasource_type,
             schema_name,
+            table_name,
             sql_script,
-            show_sql_script,
             page_setup,
             sql_type,
             result_type
@@ -153,7 +178,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             b.page_setup,
             b.create_time,
             b.sql_script,
-            b.show_sql_script,
             b.update_time,
             b.release_time,
             b.version
@@ -186,10 +210,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <if test="sqlType != null and sqlType != ''">sql_type,</if>
         <if test="resultType != null and resultType != ''">result_type,</if>
         <if test="sqlScript != null and sqlScript !=''">sql_script,</if>
-        <if test="showSqlScript != null and showSqlScript !=''">show_sql_script,</if>
         <if test="datasourceId != null and datasourceId != ''">datasource_id,</if>
         <if test="datasourceType != null and datasourceType != ''">datasource_type,</if>
         <if test="schemaName != null and schemaName != ''">schema_name,</if>
+        <if test="tableName != null and tableName != ''">table_name,</if>
         <if test="pageSetup != null">page_setup,</if>
         enabled,
         create_by,
@@ -210,10 +234,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <if test="sqlType != null and sqlType != ''">#{sqlType},</if>
         <if test="resultType != null and resultType != ''">#{resultType},</if>
         <if test="sqlScript != null and sqlScript !=''">#{sqlScript},</if>
-        <if test="showSqlScript != null and showSqlScript !=''">#{showSqlScript},</if>
         <if test="datasourceId != null and datasourceId != ''">#{datasourceId},</if>
         <if test="datasourceType != null and datasourceType != ''">#{datasourceType},</if>
         <if test="schemaName != null and schemaName != ''">#{schemaName},</if>
+        <if test="tableName != null and tableName != ''">#{tableName},</if>
         <if test="pageSetup != null">#{pageSetup},</if>
         #{enabled},
         #{createBy},
@@ -240,10 +264,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="sqlType != null and sqlType != ''">sql_type = #{sqlType},</if>
             <if test="resultType != null and resultType != ''">result_type = #{resultType},</if>
             <if test="sqlScript != null and sqlScript !=''">sql_script = #{sqlScript},</if>
-            <if test="showSqlScript != null and showSqlScript !=''">show_sql_script =#{showSqlScript},</if>
             <if test="datasourceId != null and datasourceId != ''">datasource_id =#{datasourceId},</if>
             <if test="datasourceType != null and datasourceType != ''">datasource_type =#{datasourceType},</if>
             <if test="schemaName != null and schemaName != ''">schema_name =#{schemaName},</if>
+            <if test="tableName != null and tableName != ''">table_name =#{tableName},</if>
             <if test="pageSetup != null">page_setup =#{pageSetup},</if>
             <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
             update_time = #{updateTime}

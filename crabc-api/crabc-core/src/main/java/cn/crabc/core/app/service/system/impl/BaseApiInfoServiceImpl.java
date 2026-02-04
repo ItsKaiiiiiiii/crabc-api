@@ -49,11 +49,23 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
     private BaseApiParamMapper apiParamMapper;
     @Autowired
     @Qualifier("apiCache")
-    Cache<String, Object> apiInfoCache;
-    
+    Cache<String, ApiInfoDTO> apiInfoCache;
+
+
     @Override
-    public void initApi() {
-        updateCache(null);
+    public ApiInfoDTO getApiInfoCache(String method, String apiPath) {
+        ApiInfoDTO apiInfo = apiInfoMapper.getApiDetail(method, apiPath);
+        if (apiInfo == null) {
+            return null;
+        }
+        // 应用
+        List<BaseApp> appApis = baseAppMapper.selectApiApp(apiInfo.getApiId());
+        // 请求参数
+        List<BaseApiParam> baseApiParams = apiParamMapper.selectReqParams(apiInfo.getApiId());
+
+        apiInfo.setAppList(appApis == null ? new ArrayList<>() : appApis);
+        apiInfo.setRequestParams(baseApiParams == null ? new ArrayList<>() : baseApiParams);
+        return apiInfo;
     }
 
     public void updateCache(Long apiId) {
@@ -150,6 +162,7 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
         api.setApiType("SQL");
         api.setDatasourceId(sql.getDatasourceId());
         api.setSchemaName(sql.getSchemaName());
+        api.setTableName(sql.getTableName());
         api.setDatasourceType(sql.getDatasourceType());
         api.setSqlScript(sql.getSqlScript());
         api.setCreateTime(date);
@@ -183,6 +196,7 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
         api.setEnabled(0);
         api.setDatasourceId(sql.getDatasourceId());
         api.setSchemaName(sql.getSchemaName());
+        api.setTableName(sql.getTableName());
         api.setDatasourceType(sql.getDatasourceType());
         api.setSqlScript(sql.getSqlScript());
         api.setUpdateTime(updateTime);

@@ -18,7 +18,13 @@ import java.util.List;
  */
 public interface IBaseApiInfoService {
 
-    void initApi();
+    /**
+     * 根据接口url获取API关联数据
+     *
+     * @param
+     * @return
+     */
+    ApiInfoDTO getApiInfoCache(String method, String apiPath);
 
     /**
      * 获取API关联数据
