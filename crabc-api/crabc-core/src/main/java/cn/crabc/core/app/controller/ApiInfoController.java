@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -41,7 +39,7 @@ public class ApiInfoController {
      * @return
      */
     @GetMapping("/page")
-    public Result page(String keyword, String devType, Integer pageNum, Integer pageSize) {
+    public Result page(@RequestParam(required = false) String keyword, String devType, Integer pageNum, Integer pageSize) {
         PageInfo<BaseApiInfo> page = apiInfoService.getApiPage(keyword, devType, pageNum, pageSize);
         return Result.success(page);
     }
