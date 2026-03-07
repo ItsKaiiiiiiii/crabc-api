@@ -90,6 +90,9 @@ public class ApiTestController {
         // 处理body参数
         if (params.getBodyData() != null && params.getBodyData().startsWith("{")) {
             paramsMap = objectMapper.readValue(params.getBodyData(), HashMap.class);
+        }else if (params.getBodyData() != null && params.getBodyData().startsWith("[")) {
+            List list = objectMapper.readValue(params.getBodyData(), List.class);
+            paramsMap.put("list", list);
         }
 
         // 处理query参数
@@ -106,7 +109,9 @@ public class ApiTestController {
             List<Map<String,Object>> paramsList = (List<Map<String, Object>>) requestParams;
             for (Map<String, Object> entry : paramsList) {
                 if (validateParams(entry)) {
-                    paramsMap.put(entry.get("name").toString(), entry.get("value"));
+                    if (entry.containsKey("name")) {
+                        paramsMap.put(entry.get("name").toString(), entry.get("value"));
+                    }
                 } else {
                     throw new IllegalArgumentException("参数校验失败");
                 }

@@ -3,6 +3,8 @@ package cn.crabc.core.app.entity.param;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Map;
+
 @Setter
 @Getter
 public class ApiTestParam {
@@ -25,4 +27,5 @@ public class ApiTestParam {
 
     private String bodyData;
 
+    private Map<String,Object> queryParam;
 }
