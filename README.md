@@ -32,10 +32,7 @@ cn.crabc
 ├── crabc-spring-boot-starter // 第三方项目maven集成依赖包
 ├── db                       // SQL脚本
 ├──pom.xml                   // 依赖
-~~~ 
-
-## 数据库脚本
-数据库脚本文件可加QQ群文件中获取
+~~~
 
 ## 版本说明
 dev分支框架SpringBoot已升级至3.5，jdk需17及以上版本 \
@@ -73,7 +70,7 @@ gitee: https://gitee.com/linebyte/crabc
 <dependency>
     <groupId>cn.crabc</groupId>
     <artifactId>crabc-spring-boot-starter</artifactId>
-    <version>4.1.0</version>
+    <version>4.3.0</version>
 </dependency>
 ```
 在程序启动类中添加下面注解
