@@ -7,7 +7,6 @@ import cn.crabc.core.spi.bean.Column;
 import cn.crabc.core.spi.bean.Schema;
 import cn.crabc.core.spi.bean.Table;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -70,13 +69,14 @@ public class JdbcMetaData implements MetaDataMapper {
                 }
             }
             
-            // 获取存储过程
+            // 获取存储过程（过滤掉函数，函数通过getFunctions获取）
             try (ResultSet procedures = connection.getMetaData().getProcedures(catalog, schema, null)) {
                 while (procedures.next()) {
-                    tables.add(buildProcedure(procedures, schema));
+                    Table procedure = buildProcedure(procedures, schema);
+                    tables.add(procedure);
                 }
             } catch (Exception ignored) {}
-            
+
             return tables;
         } catch (Exception e) {
             throw new CustomException(51003, "查询table失败，请检查数据源是否正确");
@@ -113,12 +113,18 @@ public class JdbcMetaData implements MetaDataMapper {
         return table;
     }
 
+    /**
+     * 构建存储过程对象
+     * 通过PROCEDURE_TYPE过滤函数（函数通过getFunctions单独获取，避免重复）
+     * PROCEDURE_TYPE: 0=未知, 1=存储过程(无返回值), 2=函数(有返回值)
+     */
     private Table buildProcedure(ResultSet rs, String schema) throws SQLException {
+        int procedureType = rs.getInt("PROCEDURE_TYPE");
         Table table = new Table();
         table.setTableName(rs.getString("PROCEDURE_NAME"));
         table.setRemarks(rs.getString("REMARKS"));
-        table.setTableType("PROCEDURE");
-        table.setCatalog(rs.getString("PROCEDURE_CAT")); 
+        table.setTableType(procedureType == 2 ? "FUNCTION" : "PROCEDURE");
+        table.setCatalog(rs.getString("PROCEDURE_CAT"));
         table.setSchema(schema);
         return table;
     }
