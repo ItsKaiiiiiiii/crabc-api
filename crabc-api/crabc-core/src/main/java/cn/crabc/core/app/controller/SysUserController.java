@@ -4,14 +4,13 @@ import cn.crabc.core.app.entity.BaseUser;
 import cn.crabc.core.app.entity.param.UserParam;
 import cn.crabc.core.app.service.system.IBaseUserService;
 import cn.crabc.core.app.util.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
-import org.apache.tomcat.util.codec.binary.Base64;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -30,7 +29,7 @@ public class SysUserController {
     @Qualifier("dataCache")
     Cache<String, Object> caffeineCache;
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper jsonMapper;
     /**
      * 登录
      *
@@ -87,12 +86,8 @@ public class SysUserController {
     public Result userMenus(){
         // 固定菜单
         String menus ="[{\"name\":\"API Hub\",\"checked\":null,\"id\":2,\"parentId\":1,\"open\":null,\"path\":null,\"url\":\"/hub\",\"sort\":2,\"menuType\":1,\"code\":\"Home\",\"hidden\":false,\"permission\":\"/api/box/sys/user/info;/api/box/sys/user/menus;/api/box/sys/message/**;/api/box/sys/user/update/pwd\",\"subMenus\":[{\"name\":\"接口详情\",\"checked\":null,\"id\":7,\"parentId\":2,\"open\":null,\"path\":null,\"url\":\"/doc\",\"sort\":6,\"menuType\":1,\"code\":\"DataCatelogApiDetails\",\"hidden\":true,\"permission\":\"doc\",\"subMenus\":[]}]},{\"name\":\"工作台\",\"checked\":null,\"id\":3,\"parentId\":1,\"open\":null,\"path\":null,\"url\":\"/working\",\"sort\":3,\"menuType\":1,\"code\":\"DataService\",\"hidden\":false,\"permission\":\"/api/box/sys/common/**;/api/box/sys/api/info/**;/api/box/sys/metadata/**;/api/box/sys/test/**;/api/box/sys/group/**;/api/box/sys/user/check/name\",\"subMenus\":[]},{\"name\":\"服务台\",\"checked\":null,\"id\":4,\"parentId\":1,\"open\":null,\"path\":null,\"url\":\"/manage\",\"sort\":4,\"menuType\":1,\"code\":\"Manage\",\"hidden\":false,\"permission\":\"manage\",\"subMenus\":[{\"name\":\"应用管理\",\"checked\":null,\"id\":8,\"parentId\":4,\"open\":null,\"path\":null,\"url\":\"/manage/keys\",\"sort\":1,\"menuType\":1,\"code\":\"Application\",\"hidden\":true,\"permission\":\"/api/box/sys/app/**\",\"subMenus\":[]},{\"name\":\"接口列表\",\"checked\":null,\"id\":9,\"parentId\":4,\"open\":null,\"path\":null,\"url\":\"/manage/apis\",\"sort\":1,\"menuType\":1,\"code\":\"MyApi\",\"hidden\":true,\"permission\":\"/api/box/sys/api/info/**\",\"subMenus\":[]},{\"name\":\"日志管理\",\"checked\":null,\"id\":12,\"parentId\":4,\"open\":null,\"path\":null,\"url\":\"/manage/logs\",\"sort\":1,\"menuType\":1,\"code\":\"UseLog\",\"hidden\":true,\"permission\":\"/api/box/sys/api/log/**\",\"subMenus\":[{\"name\":\"日志列表\",\"checked\":null,\"id\":13,\"parentId\":12,\"open\":null,\"path\":null,\"url\":\"/manage/logs/list\",\"sort\":1,\"menuType\":1,\"code\":\"UseLogList\",\"hidden\":true,\"permission\":\"/api/box/sys/api/log/**\",\"subMenus\":[]},{\"name\":\"日志详情\",\"checked\":null,\"id\":14,\"parentId\":12,\"open\":null,\"path\":null,\"url\":\"/manage/logs/detail\",\"sort\":1,\"menuType\":1,\"code\":\"DetailUesLog\",\"hidden\":true,\"permission\":null,\"subMenus\":[]}]},{\"name\":\"分类管理\",\"checked\":null,\"id\":30,\"parentId\":4,\"open\":null,\"path\":null,\"url\":\"/manage/classification\",\"sort\":1,\"menuType\":1,\"code\":\"Classification\",\"hidden\":true,\"permission\":\"manage:classification\",\"subMenus\":[]},{\"name\":\"数据源\",\"checked\":null,\"id\":31,\"parentId\":4,\"open\":null,\"path\":null,\"url\":\"/manage/datasource\",\"sort\":1,\"menuType\":1,\"code\":\"DataSource\",\"hidden\":true,\"permission\":\"/api/box/sys/datasource/**;/api/box/sys/user/pubKey\",\"subMenus\":[]},{\"name\":\"密码重置\",\"checked\":null,\"id\":32,\"parentId\":4,\"open\":null,\"path\":null,\"url\":\"/manage/edit-pwd\",\"sort\":1,\"menuType\":1,\"code\":\"ChangePassword\",\"hidden\":true,\"permission\":\"/api/box/sys/user/update/pwd\",\"subMenus\":[]}]}]";
-        try {
-            List<Map<String, Object>> list = objectMapper.readValue(menus, List.class);
-            return Result.success(list);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        List<Map<String, Object>> list = jsonMapper.readValue(menus, List.class);
+        return Result.success(list);
     }
 
     /**

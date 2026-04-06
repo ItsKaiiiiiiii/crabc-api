@@ -10,7 +10,6 @@ import cn.crabc.core.app.util.RequestUtils;
 import cn.crabc.core.app.util.Result;
 import cn.crabc.core.app.util.SM3Util;
 import cn.crabc.core.datasource.enums.ErrorStatusEnum;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,8 +22,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.util.ContentCachingResponseWrapper;
+import tools.jackson.databind.json.JsonMapper;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -46,7 +45,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Value("${crabc.auth.expiresTime:10}")
     private Integer expiresTime;
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper jsonMapper;
     @Autowired
     @Qualifier("apiCache")
     private Cache<String, ApiInfoDTO> apiCache;
@@ -111,7 +110,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         response.setStatus(400);
         response.setContentType("application/json;charset=UTF-8");
         Result result = Result.error(status, message);
-        String json = objectMapper.writeValueAsString(result);
+        String json = jsonMapper.writeValueAsString(result);
         // 日记记录
         addLog(request, response, json);
         response.getWriter().write(json);

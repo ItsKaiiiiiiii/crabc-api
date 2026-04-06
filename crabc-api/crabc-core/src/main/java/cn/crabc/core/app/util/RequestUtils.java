@@ -1,12 +1,6 @@
 package cn.crabc.core.app.util;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-
-import java.io.BufferedReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -17,36 +11,6 @@ import java.util.Set;
  * @author yuqf
  */
 public class RequestUtils {
-
-    private static ObjectMapper objectMapper = new ObjectMapper();
-
-    /**
-     * 获取body
-     *
-     * @param req
-     * @return
-     */
-    public static Map<String, Object> getBodyMap(HttpServletRequest req) {
-        BufferedReader reader = null;
-        Map<String, Object> bodyMap = new HashMap<>();
-        try {
-            reader = req.getReader();
-            StringBuilder builder = new StringBuilder();
-            String line = reader.readLine();
-            while (line != null) {
-                builder.append(line);
-                line = reader.readLine();
-            }
-            reader.close();
-            String bodyString = builder.toString();
-            if (!"".equals(bodyString)) {
-                bodyMap = objectMapper.readValue(bodyString, Map.class);
-            }
-        } catch (Exception e) {
-
-        }
-        return bodyMap;
-    }
 
     /**
      * 获取 params 参数
@@ -147,58 +111,5 @@ public class RequestUtils {
             ip ="127.0.0.1";
         }
         return ip == null ? "" : ip.trim();
-    }
-
-    /**
-     * 根据关键字解析json
-     *
-     * @param @param jsonObject
-     * @param @param keyName 支持逗号分隔
-     * @return Object
-     */
-    public static Object decodeJsonObject(String jsonObject, String keyName) {
-        Object result = null;
-        if (jsonObject == null || "".equals(jsonObject)) {
-            return null;
-        }
-        JsonFactory jasonFactory = new JsonFactory();
-        JsonParser parser = null;
-        try {
-            parser = jasonFactory.createParser(jsonObject);
-            JsonToken firstToken = parser.nextToken();
-            if (!JsonToken.START_OBJECT.equals(firstToken)) {
-                return result;
-            }
-            while (!parser.isClosed()) {
-                JsonToken t = parser.nextToken();
-                if (JsonToken.FIELD_NAME.equals(t) && keyName.equals(parser.getCurrentName())) {
-                    JsonToken v = parser.nextToken();
-                    if (JsonToken.VALUE_NULL.equals(v)) {
-                        return null;
-                    } else if (JsonToken.VALUE_STRING.equals(v)) {
-                        return parser.getValueAsString();
-                    } else if (JsonToken.VALUE_TRUE.equals(v) || JsonToken.VALUE_FALSE.equals(v)) {
-                        return parser.getBooleanValue();
-                    } else if (JsonToken.VALUE_NUMBER_INT.equals(v)) {
-                        return parser.getLongValue();
-                    } else if (JsonToken.VALUE_NUMBER_FLOAT.equals(v)) {
-                        return parser.getDoubleValue();
-                    }
-                } else if (JsonToken.START_OBJECT.equals(t) || JsonToken.START_ARRAY.equals(t)) {
-                    parser.skipChildren();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (parser != null) {
-                    parser.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return result;
     }
 }

@@ -6,9 +6,9 @@ import cn.crabc.core.app.enums.ResultTypeEnum;
 import cn.crabc.core.app.service.core.IBaseDataService;
 import cn.crabc.core.app.util.Result;
 import cn.crabc.core.datasource.enums.ErrorStatusEnum;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ public class ApiTestController {
     @Autowired
     private IBaseDataService baseDataService;
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper jsonMapper;
 
     /**
      * 运行预览
@@ -89,9 +89,9 @@ public class ApiTestController {
         
         // 处理body参数
         if (params.getBodyData() != null && params.getBodyData().startsWith("{")) {
-            paramsMap = objectMapper.readValue(params.getBodyData(), HashMap.class);
+            paramsMap = jsonMapper.readValue(params.getBodyData(), HashMap.class);
         }else if (params.getBodyData() != null && params.getBodyData().startsWith("[")) {
-            List list = objectMapper.readValue(params.getBodyData(), List.class);
+            List list = jsonMapper.readValue(params.getBodyData(), List.class);
             paramsMap.put("list", list);
         }
 
@@ -129,9 +129,9 @@ public class ApiTestController {
     private String formatResultData(Object data, String resultType) throws Exception {
         if (ResultTypeEnum.ONE.getName().equals(resultType) && data instanceof List) {
             List<Object> list = (List<Object>) data;
-            return objectMapper.writeValueAsString(Result.success(list.isEmpty() ? null : list.get(0)));
+            return jsonMapper.writeValueAsString(Result.success(list.isEmpty() ? null : list.get(0)));
         }
-        return objectMapper.writeValueAsString(Result.success(data));
+        return jsonMapper.writeValueAsString(Result.success(data));
     }
 
     /**
