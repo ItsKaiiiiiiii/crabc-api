@@ -6,14 +6,20 @@ spring:
     name: crabc-api
   main:
     banner-mode: off
+  threads:
+    virtual:
+      enabled: true  # 全局启用虚拟线程
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+    default-property-inclusion: non_null
+    core:
+      recycler-pool: thread-local  # Jackson3性能恢复
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
-    url: jdbc:mysql://127.0.0.1:3306/crabc?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://8.138.199.189:33061/test?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password:
+    password: Crabc123.
 # mybatis配置
 mybatis:
   # 搜索指定包别名

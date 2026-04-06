@@ -3,7 +3,7 @@
 crabc由create + abc 组合而来，意在为项目系统构建的通用的接口底座。
 
 # 介绍
-**crabc-api** 是接口快速开发平台，企业数据服务平台,sql2Api，深度整合SpringBoot和Mybatis实现动态数据源和动态SQL、函数和存储过程。
+**crabc-api** 是接口快速开发平台，企业数据服务平台，sql2Api，数据预览等。深度整合SpringBoot和Mybatis实现动态数据源和动态SQL、函数和存储过程。
 支持接入（mysql、oracle、postgresql、sqlserver、达梦、TiDB、es和hive）等SQL或/NoSQL数据源，
 在线可视化编写SQL后即可快速生成接口对外提供服务，接口一键上下线。减少通用接口的SQL编写，让开发人员专注更复杂的业务逻辑实现。
 支持Mybatis中if等标签语法、数据脱敏、数据转换、国密加密、协同开发、接口编排等功能，可集成微服务网关支持接入第三方接口、权限认证、限流、缓存、告警监控和统一日志等一站式API数据服务,
@@ -12,8 +12,8 @@ crabc由create + abc 组合而来，意在为项目系统构建的通用的接�
 ![img.png](doc/home.png)
 ## 社区版功能
 - **工作台**：可视化编写SQL快速的对外发布成API接口,支持多SQL同时执行、Mybatis标签语法，实现动态SQL和动态标签
-- **数据源管理**：动态加载数据库，支持多种SQL/NoSQL数据库。
-- **应用列表**：AppKey认证、签名认证的应用创建管理以及对API调用在线授权。
+- **数据源**：数据源列表和数据查询，支持多种SQL/NoSQL数据库添加。
+- **应用凭证**：AppKey认证、签名认证的应用创建管理以及对API调用在线授权。
 - **接口列表**：查看开发中和已发布的API接口，可进行上下线管理，编辑升级等
 - **接口文档**：生成在线接口文档，支持在线测试。
 - **接口日志**：查看发布的接口被调用日志列表和请求详情。
@@ -101,7 +101,7 @@ java -jar crabc-api.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/crab
 
 ## 效果截图
 ### 接口开发
-![img.png](doc/sql.png)
+![img.png](doc/dev.png)
 #### 接口属性
 ![img.png](doc/detail.png)
 #### 返回参数
@@ -112,7 +112,11 @@ java -jar crabc-api.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3306/crab
 ![img.png](doc/apis.png)
 #### 日志管理
 ![img.png](doc/logs.png)
-#### 数据库类型
+#### 数据源列表
+![img.png](doc/dbs.png)
+#### 数据查询
+![img.png](doc/data.png)
+#### 数据源类型
 ![img.png](doc/db.png)
 
 ## 交流群
