@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 public class JdbcStatement implements StatementMapper {
     private static final Logger log = LoggerFactory.getLogger(JdbcStatement.class);
     private final BaseDataHandleMapper baseMapper;
-    private static final int PAGE_SIZE = 50;
+    private static final int PAGE_SIZE = 100;
     private static final int PAGE_NUM = 1;
 
     public JdbcStatement(BaseDataHandleMapper baseMapper) {

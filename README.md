@@ -35,7 +35,7 @@ cn.crabc
 ~~~
 
 ## 版本说明
-dev分支框架SpringBoot已升级至3.5，jdk需17及以上版本 \
+dev分支框架SpringBoot已升级至4.0，jdk需21及以上版本 \
 jdk8分支框架SpringBoot是2.x + jdk8
 
 ## 企业版
@@ -70,7 +70,7 @@ gitee: https://gitee.com/linebyte/crabc
 <dependency>
     <groupId>cn.crabc</groupId>
     <artifactId>crabc-spring-boot-starter</artifactId>
-    <version>4.3.0</version>
+    <version>4.4.0</version>
 </dependency>
 ```
 在程序启动类中添加下面注解
@@ -154,9 +154,8 @@ QQ群(请先Star)：748993036
 | SQL类型 | 查询SQL                                                        | 查询/插入/更新/删除等SQL                                                                                                                   |
 | 结果类型  | json                                                         | json/Excel                                                                                                                        |
 | 接口日志  | 支持                                                           | 支持                                                                                                                                |
-| 数据模型  | 不支持                                                          | 支持                                                                                                                                |
 | 协同开发  | 不支持                                                          | 支持                                                                                                                                |
-| 结果转换  | 不支持                                                          | 支持                                                                                                                                |
+| 插件市场  | 不支持                                                          | 支持                                                                                                                                |
 | 接口市场  | 不支持                                                          | 支持                                                                                                                                |
 | 申请审批  | 不支持                                                          | 支持                                                                                                                                |
 | 接口授权  | 不支持                                                          | 支持                                                                                                                                |

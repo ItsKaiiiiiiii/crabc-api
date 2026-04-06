@@ -51,7 +51,7 @@ buildNumber.properties
 bin/
 logs/
 db/
-.classpath
+.classpathc
 
 
 ####################### idea ##############################
@@ -67,4 +67,6 @@ db/
 
 .flattened-pom.xml
 *.log
+AGENTS.md
 tmp/
+/crabc-web/

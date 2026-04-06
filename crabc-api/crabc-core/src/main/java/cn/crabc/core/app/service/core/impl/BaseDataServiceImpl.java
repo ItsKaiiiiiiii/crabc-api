@@ -38,6 +38,7 @@ public class BaseDataServiceImpl implements IBaseDataService {
             params.put(BaseConstant.DATA_SOURCE_TYPE, datasourceType);
         }
         params.put(BaseConstant.BASE_API_EXEC_TYPE, "preview");
+        params.put(BaseConstant.PAGE_SETUP, 1);
         Object result = this.execute(datasourceId, datasourceType, schema, sql, params);
         PreviewVO preview = new PreviewVO();
         if (result instanceof List) {
