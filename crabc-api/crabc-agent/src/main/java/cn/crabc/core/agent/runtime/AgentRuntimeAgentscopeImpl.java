@@ -1,6 +1,7 @@
 package cn.crabc.core.agent.runtime;
 
 import cn.crabc.core.agent.context.TenantCtx;
+import cn.crabc.core.agent.tool.ChartAgentTools;
 import cn.crabc.core.agent.tool.ChatAgentTools;
 import io.agentscope.core.agent.RuntimeContext;
 import io.agentscope.core.event.AgentEvent;
@@ -8,6 +9,9 @@ import io.agentscope.core.event.AgentEventType;
 import io.agentscope.core.event.TextBlockDeltaEvent;
 import io.agentscope.core.event.ToolCallStartEvent;
 import io.agentscope.core.message.Msg;
+import io.agentscope.core.message.MsgRole;
+import io.agentscope.core.message.TextBlock;
+import io.agentscope.core.message.ToolResultBlock;
 import io.agentscope.core.message.UserMessage;
 import io.agentscope.core.tool.Toolkit;
 import io.agentscope.harness.agent.HarnessAgent;
@@ -50,10 +54,17 @@ public class AgentRuntimeAgentscopeImpl implements AgentRuntime {
 
     private final ChatAgentTools tools;
 
+    private final ChartAgentTools chartTools;
+
+    private final MySQLAgentStateStore stateStore;
+
     private volatile HarnessAgent agent;
 
-    public AgentRuntimeAgentscopeImpl(ChatAgentTools tools) {
+    public AgentRuntimeAgentscopeImpl(ChatAgentTools tools, ChartAgentTools chartTools,
+                                      MySQLAgentStateStore stateStore) {
         this.tools = tools;
+        this.chartTools = chartTools;
+        this.stateStore = stateStore;
     }
 
     /** 系统提示词极简（DataAgent 验证的设计）：知识获取全部工具驱动，只放流程约束与日期时区 */
@@ -82,11 +93,14 @@ public class AgentRuntimeAgentscopeImpl implements AgentRuntime {
                 if (agent == null) {
                     Toolkit toolkit = new Toolkit();
                     toolkit.registerTool(tools);
+                    toolkit.registerTool(chartTools);
                     local = HarnessAgent.builder()
                             .name("chatview-agent")
                             .sysPrompt(sysPrompt())
                             .model(model)
                             .toolkit(toolkit)
+                            // 会话状态进 MySQL（多副本/重启恢复），替代默认本地文件实现
+                            .stateStore(stateStore)
                             .compaction(CompactionConfig.builder()
                                     .triggerMessages(40)
                                     .keepMessages(12)
@@ -115,10 +129,19 @@ public class AgentRuntimeAgentscopeImpl implements AgentRuntime {
 
     @Override
     public Flux<ChatEvent> resume(String sessionId, TenantCtx ctx, String toolCallId, String toolName, String answer) {
-        // TODO(M1.5)：外部工具结果回传走 Toolkit 的挂起恢复协议（RequireExternalExecutionEvent 对应 API），
-        // 首版先以普通消息续跑（把答案作为用户消息注入），行为兼容、协议后续切到标准恢复。
-        String continueMsg = "（追问回答）" + answer;
-        return toChatEvents(agent().streamEvents(new UserMessage(continueMsg), runtimeCtx(sessionId, ctx)));
+        // 标准恢复协议（docs/05 §4.2）：把用户回答包装成与挂起调用匹配的 ToolResultBlock 回传，
+        // 框架按 replyId 关联后从断点继续推理。
+        ToolResultBlock block = ToolResultBlock.builder()
+                .id(toolCallId)
+                .name(toolName)
+                .output(TextBlock.builder().text(answer).build())
+                .build();
+        Msg toolMsg = Msg.builder()
+                .role(MsgRole.TOOL)
+                .name(toolName)
+                .content(block)
+                .build();
+        return toChatEvents(agent().streamEvents(toolMsg, runtimeCtx(sessionId, ctx)));
     }
 
     /** AgentEvent → ChatEvent 映射（唯一一处框架事件耦合） */
