@@ -16,6 +16,7 @@
         <module>crabc-core</module>
         <module>crabc-spi</module>
         <module>crabc-datasource</module>
+        <module>crabc-agent</module>
         <module>crabc-admin</module>
     </modules>
 

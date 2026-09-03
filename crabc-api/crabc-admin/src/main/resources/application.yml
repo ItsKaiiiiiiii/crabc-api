@@ -32,3 +32,23 @@ mybatis:
 
 pagehelper:
   autoRuntimeDialect: true   # 开启多数据源分页识别
+
+# ==================== chatView 配置 ====================
+crabc:
+  jwt:
+    # 生产环境必须用环境变量覆盖：CRABC_JWT_SECRET（≥32 字节，缺失或强度不足拒绝启动）
+    # 生成示例：openssl rand -base64 48
+    secret: ${CRABC_JWT_SECRET:dev-only-secret-change-me-0123456789-abcdefghijk}
+    expires-hours: 8                # access token 有效期
+    refresh-expires-hours: 720      # refresh token 有效期（30 天）
+  flyway:
+    enabled: true                   # schema 演进（classpath:db/flyway）
+  agent:
+    # 模型串由 AgentScope ModelRegistry 解析：dashscope:qwen-plus / deepseek:deepseek-chat /
+    # openai:... / ollama:...（API Key 从环境变量读取，如 DASHSCOPE_API_KEY、DEEPSEEK_API_KEY）
+    llm:
+      model: ${CRABC_AGENT_MODEL:dashscope:qwen-plus}
+    recall:
+      domain-table-threshold: 50    # R8 第二级兜底阈值（P1，埋点校准）
+    sync:
+      value-domain-enabled: true    # R1 值域 profiling

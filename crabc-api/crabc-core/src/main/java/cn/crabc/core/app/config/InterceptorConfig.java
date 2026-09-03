@@ -31,10 +31,15 @@ public class InterceptorConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 登录拦截器
+        // 登录拦截器（chatView：/refresh 凭 refresh token 换发，不需要已有登录态，放行）
         registry.addInterceptor(jwtInterceptor())
                 .addPathPatterns("/api/box/**") // 需要拦截的请求
-                .excludePathPatterns("/api/box/sys/user/login", "/api/box/sys/user/loginout", "/api/box/sys/user/register"); // 不拦截的请求
+                .excludePathPatterns("/api/box/sys/user/login", "/api/box/sys/user/loginout",
+                        "/api/box/sys/user/register", "/api/box/sys/user/refresh"); // 不拦截的请求
+
+        // chatView：创作会话接口同样走 crabc JWT 登录态
+        registry.addInterceptor(jwtInterceptor())
+                .addPathPatterns("/api/v1/**");
 
         // API开放接口拦截器
         registry.addInterceptor(apiInterceptor())

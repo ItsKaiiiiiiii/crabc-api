@@ -21,6 +21,12 @@
             <artifactId>crabc-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- chatView：Agent 层 -->
+        <dependency>
+            <groupId>cn.crabc</groupId>
+            <artifactId>crabc-agent</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
