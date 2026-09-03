@@ -11,6 +11,8 @@ public class CustomException extends RuntimeException {
     private String msg;
 
     public CustomException(int code, String message) {
+        // chatView：message 同步给 Throwable（原实现 getMessage() 恒为 null，日志排查困难）
+        super(message);
         this.code = code;
         this.msg = message;
     }

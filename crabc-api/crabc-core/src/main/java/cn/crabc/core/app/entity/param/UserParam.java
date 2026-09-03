@@ -35,4 +35,7 @@ public class UserParam {
     private String password;
 
     private String newPassword;
+
+    /** chatView：刷新令牌 */
+    private String refreshToken;
 }

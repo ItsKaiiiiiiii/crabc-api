@@ -40,6 +40,19 @@ public class UserThreadLocal {
     }
 
     /**
+     * chatView：当前租户（JWT claims 携带，缺省 default）
+     *
+     * @return
+     */
+    public static String getTenantId() {
+        Map<String, Object> map = userInfo.get();
+        if (map == null || map.get(JwtUtil.CLAIM_TENANT) == null) {
+            return "default";
+        }
+        return map.get(JwtUtil.CLAIM_TENANT).toString();
+    }
+
+    /**
      * 是否管理员
      * @return
      */

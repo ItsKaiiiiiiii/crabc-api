@@ -2,9 +2,11 @@ package cn.crabc.core.app.service.core.impl;
 
 
 import cn.crabc.core.app.entity.vo.PreviewVO;
+import cn.crabc.core.app.guard.SqlGuard;
 import cn.crabc.core.app.service.core.IBaseDataService;
 import cn.crabc.core.app.util.SQLUtil;
 import cn.crabc.core.datasource.constant.BaseConstant;
+import cn.crabc.core.datasource.exception.CustomException;
 import cn.crabc.core.datasource.driver.DataSourceManager;
 import cn.crabc.core.spi.StatementMapper;
 import cn.crabc.core.spi.bean.BaseDataSource;
@@ -73,7 +75,9 @@ public class BaseDataServiceImpl implements IBaseDataService {
                 return statementMapper.update(datasourceId, schema, sql, params);
             case "delete":
                 return statementMapper.delete(datasourceId, schema, sql, params);
-            default:
+            case "select":
+                // chatView 安全改造 #3：SELECT 走统一护栏后再执行
+                SqlGuard.getInstance().guardQueryOrThrow(sql);
                 Object pageNum = params.get(BaseConstant.PAGE_NUM);
                 Object pageSize = params.get(BaseConstant.PAGE_SIZE);
                 if (pageNum != null && pageSize != null) {
@@ -82,6 +86,9 @@ public class BaseDataServiceImpl implements IBaseDataService {
                             Integer.parseInt(pageSize.toString()));
                 }
                 return statementMapper.selectList(datasourceId, schema, sql, params);
+            default:
+                // chatView 安全改造 #3：原实现 default 分支把 DDL/其他语句当查询执行，改为显式拒绝
+                throw new CustomException(4003, "不支持的 SQL 类型：" + sqlType + "（仅允许 SELECT/INSERT/UPDATE/DELETE）");
         }
     }
 }

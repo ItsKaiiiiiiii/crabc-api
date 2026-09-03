@@ -82,7 +82,11 @@ public class AuthInterceptor implements HandlerInterceptor {
                 case "APP_CODE" -> checkAppCode(request,response, appList);
                 case "APP_KEY" -> checkAppKey(request,response, appList);
                 case "APP_SECRET" -> checkSM3(request,response, appList);
-                default -> true;
+                // chatView 安全改造 #2：未知认证类型一律拒绝（原实现 default 放行，等于未鉴权）
+                default -> {
+                    setErrorResponse(request,response,ErrorStatusEnum.API_UN_AUTH.getCode(),ErrorStatusEnum.API_UN_AUTH.getMassage());
+                    yield false;
+                }
             };
         }catch (Exception e) {
             setErrorResponse(request,response,ErrorStatusEnum.API_UN_AUTH.getCode(),ErrorStatusEnum.API_UN_AUTH.getMassage());

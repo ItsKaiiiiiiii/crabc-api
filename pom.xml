@@ -32,6 +32,10 @@
         <commons-pool2.version>2.13.1</commons-pool2.version>
         <lombok.version>1.18.44</lombok.version>
         <jdk18on.version>1.80</jdk18on.version>
+        <!-- chatView -->
+        <jsqlparser.version>4.9</jsqlparser.version>
+        <flyway.version>11.7.2</flyway.version>
+        <agentscope.version>2.0.1</agentscope.version>
     </properties>
     <repositories>
         <repository>

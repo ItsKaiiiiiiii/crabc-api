@@ -40,10 +40,11 @@ public class BaseGroupServiceImpl implements IBaseGroupService {
     public Integer updateGroup(BaseGroup group, String userId) {
         BaseGroup baseGroup = baseGroupMapper.selectOne(group.getGroupId());
         if (baseGroup == null){
-            new RuntimeException("分组不存在");
+            // chatView 安全改造 #5：原实现创建异常后未 throw，越权校验形同虚设
+            throw new RuntimeException("分组不存在");
         }
         if (!userId.equals(baseGroup.getCreateBy())){
-            new RuntimeException("非法操作");
+            throw new RuntimeException("非法操作");
         }
         group.setCreateBy(userId);
         group.setUpdateTime(new Date());
@@ -54,10 +55,10 @@ public class BaseGroupServiceImpl implements IBaseGroupService {
     public Integer delteGroup(Integer groupId, String userId) {
         BaseGroup baseGroup = baseGroupMapper.selectOne(groupId);
         if (baseGroup == null){
-            new RuntimeException("分组不存在");
+            throw new RuntimeException("分组不存在");
         }
         if (!userId.equals(baseGroup.getCreateBy())){
-            new RuntimeException("非法操作");
+            throw new RuntimeException("非法操作");
         }
         return baseGroupMapper.delete(groupId);
     }

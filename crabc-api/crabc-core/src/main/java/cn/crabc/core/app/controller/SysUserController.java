@@ -5,6 +5,7 @@ import cn.crabc.core.app.entity.param.UserParam;
 import cn.crabc.core.app.service.system.IBaseUserService;
 import cn.crabc.core.app.util.*;
 import com.github.benmanes.caffeine.cache.Cache;
+import io.jsonwebtoken.Claims;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,18 +43,53 @@ public class SysUserController {
             return Result.error("账号或密码错误!");
         }
         String pwd = new String(Base64.decodeBase64(UserParam.getPassword()), StandardCharsets.UTF_8);
-        String md5 = Md5Utils.hash(pwd).toUpperCase();
-        if (!userInfo.getPassword().equals(md5)) {
+        // chatView 安全改造 #4：MD5 无盐 → PBKDF2（存量 MD5 口令校验通过后透明升级）
+        int verify = PwdCodec.verify(userInfo.getPassword(), pwd);
+        if (verify == 1) {
             return Result.error("账号或密码错误!");
         }
+        if (verify == 2) {
+            // 历史 MD5 口令：升级为 PBKDF2 存储
+            userInfo.setPassword(PwdCodec.encode(pwd));
+            iBaseUserService.updateUser(userInfo);
+        }
         Map<String, Object> user = new HashMap<>();
-        String token = JwtUtil.createToken(userInfo.getUserId(), userInfo.getUsername());
+        String token = JwtUtil.createToken(userInfo.getUserId(), userInfo.getUsername(), UserThreadLocal.getTenantId());
         if (token == null) {
             return Result.error("登录失败");
         }
+        // chatView 安全改造 #7：refresh_token 由随机 UUID（无刷新逻辑）改为真实 JWT
+        String refreshToken = JwtUtil.createRefreshToken(userInfo.getUserId(), userInfo.getUsername(), UserThreadLocal.getTenantId());
         user.put("expires", 3600);
         user.put("access_token", token);
-        user.put("refresh_token", UUID.randomUUID().toString().replace("-", ""));
+        user.put("refresh_token", refreshToken);
+        return Result.success(user);
+    }
+
+    /**
+     * chatView：刷新 access token（凭 refresh token 换新，不改变会话有效性语义）
+     *
+     * @param param
+     * @return
+     */
+    @PostMapping("/refresh")
+    public Result refreshToken(@RequestBody UserParam param) {
+        String refreshToken = param.getRefreshToken();
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            return Result.error("refresh_token 不能为空");
+        }
+        Claims claims = JwtUtil.parseToken(refreshToken);
+        if (claims == null || !JwtUtil.TYPE_REFRESH.equals(JwtUtil.getTokenType(claims))) {
+            return Result.error("refresh_token 无效或已过期");
+        }
+        Long userId = Long.valueOf(claims.get("userId").toString());
+        String userName = String.valueOf(claims.get("userName"));
+        String tenantId = JwtUtil.getTenantId(claims);
+        Map<String, Object> user = new HashMap<>();
+        String token = JwtUtil.createToken(userId, userName, tenantId);
+        user.put("expires", 3600);
+        user.put("access_token", token);
+        user.put("refresh_token", JwtUtil.createRefreshToken(userId, userName, tenantId));
         return Result.success(user);
     }
 
@@ -102,13 +138,12 @@ public class SysUserController {
             return Result.error("账号不存在!");
         }
         String pwd = new String(Base64.decodeBase64(user.getPassword()), StandardCharsets.UTF_8);
-        String md5Pwd = Md5Utils.hash(pwd).toUpperCase();
-        if (!userInfo.getPassword().equals(md5Pwd)) {
+        // chatView 安全改造 #4：旧口令支持 PBKDF2 与历史 MD5 双格式校验
+        if (PwdCodec.verify(userInfo.getPassword(), pwd) == 1) {
             return Result.error("原密码错误!");
         }
         String newPwd = new String(Base64.decodeBase64(user.getNewPassword()), StandardCharsets.UTF_8);
-        String newMd5Pwd = Md5Utils.hash(newPwd).toUpperCase();
-        userInfo.setPassword(newMd5Pwd);
+        userInfo.setPassword(PwdCodec.encode(newPwd));
         iBaseUserService.updateUser(userInfo);
         return Result.success();
     }
@@ -121,8 +156,8 @@ public class SysUserController {
     @PostMapping("/register")
     public Result register(@RequestBody UserParam user){
         String pwd = new String(Base64.decodeBase64(user.getPassword()), StandardCharsets.UTF_8);
-        String md5 = Md5Utils.hash(pwd).toUpperCase();
-        user.setPassword(md5);
+        // chatView 安全改造 #4：注册口令改用 PBKDF2 存储
+        user.setPassword(PwdCodec.encode(pwd));
         BaseUser baseUser = new BaseUser();
         BeanUtils.copyProperties(user, baseUser);
         iBaseUserService.addUser(baseUser);

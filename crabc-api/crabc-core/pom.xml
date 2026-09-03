@@ -71,5 +71,22 @@
             <artifactId>bcpkix-jdk18on</artifactId>
             <version>${jdk18on.version}</version>
         </dependency>
+        <!-- chatView: schema 演进（Flyway，迁移脚本在 classpath:db/flyway） -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+        <!-- chatView: SqlGuard ① 道闸 SQL AST 解析 -->
+        <dependency>
+            <groupId>com.github.jsqlparser</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>${jsqlparser.version}</version>
+        </dependency>
     </dependencies>
 </project>

@@ -34,9 +34,12 @@ public class DataSourceConfig {
     /**
      * 默认系统数据源
      *
+     * chatView：依赖 Flyway 先行完成系统库迁移（chatViewFlyway），保证启动时系统表已就绪。
+     *
      * @return
      */
     @Bean
+    @org.springframework.context.annotation.DependsOn("chatViewFlyway")
     public JdbcDataSourceRouter defaultDataSource() {
         DruidDataSource dataSource = new DruidDataSource();
         dataSource.setUrl(jdbcUrl);
